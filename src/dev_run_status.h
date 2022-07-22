@@ -4,13 +4,13 @@
 #define __DEV_RUN_STATUS_H__
 
 typedef enum {
-	DEV_POWEROFF = 1,      //关机
-	DEV_VOL_LE36  =  2,   //电压低于3.6
-	DEV_VOL_LE30  = 3,    //电压低于3.0
-	DEV_RUN_NORMAL = 4,  //正常运行
-	DEV_CHARGE  =  5,   //充电
-	DEV_CHARGE_OK  =  6,   //充电完成
-	DEV_BUG  =  7      //故障
+	DEV_BUG  =  1 ,     //故障
+	DEV_VOL_LE30  = 2,    //电压低于3.0	
+	DEV_POWEROFF = 3,      //关机
+	DEV_VOL_LE36  =  4,   //电压低于3.6	
+	DEV_RUN_NORMAL = 5,  //正常运行
+	DEV_CHARGE  =  6,   //充电
+	DEV_CHARGE_OK  =  7   //充电完成
 }system_run_status_t;
 
 

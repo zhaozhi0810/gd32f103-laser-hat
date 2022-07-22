@@ -110,3 +110,33 @@ uint16_t ADCgetBatVol(void)
 
 
 
+//电池电压检测任务,500ms进入一次
+void bat_vol_task(void)
+{
+	uint16_t vol;
+	
+	if(get_system_run_status() == DEV_CHARGE)  //充电时不检测电压
+	{
+		return;
+	}
+	
+	
+	vol = ADCgetBatVol();   //获得电压值
+	MY_PRINTF("%s %d vol = %d\r\n",__FUNCTION__,__LINE__,vol);
+	if(vol > 36)   //电压放大了10倍  3.6伏
+	{
+		MY_PRINTF("%s %d vol>36\r\n",__FUNCTION__,__LINE__);
+		//nothing to do
+	}
+	else if(vol > 30)  //3.0-3.6 需要报警
+	{
+		MY_PRINTF("%s %d 3.0< vol <=3.6\r\n",__FUNCTION__,__LINE__);
+		set_system_run_status(DEV_VOL_LE36);
+	}
+	else //3.0v以下了
+	{
+		MY_PRINTF("%s %d vol <=3.0\r\n",__FUNCTION__,__LINE__);
+		set_system_run_status(DEV_VOL_LE30);
+	}
+	
+}

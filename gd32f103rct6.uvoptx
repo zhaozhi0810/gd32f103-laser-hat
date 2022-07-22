@@ -314,8 +314,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\src\ir_swtich.c</PathWithFileName>
-      <FilenameWithoutPath>ir_swtich.c</FilenameWithoutPath>
+      <PathWithFileName>.\src\dev_run_status.c</PathWithFileName>
+      <FilenameWithoutPath>dev_run_status.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -326,8 +326,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\src\dev_run_status.c</PathWithFileName>
-      <FilenameWithoutPath>dev_run_status.c</FilenameWithoutPath>
+      <PathWithFileName>.\src\adc_vol.c</PathWithFileName>
+      <FilenameWithoutPath>adc_vol.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -338,8 +338,32 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\src\adc_vol.c</PathWithFileName>
-      <FilenameWithoutPath>adc_vol.c</FilenameWithoutPath>
+      <PathWithFileName>.\src\gd32f10x_it.c</PathWithFileName>
+      <FilenameWithoutPath>gd32f10x_it.c</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>1</GroupNumber>
+      <FileNumber>15</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\src\ir_switch.c</PathWithFileName>
+      <FilenameWithoutPath>ir_switch.c</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>1</GroupNumber>
+      <FileNumber>16</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\src\power_manager.c</PathWithFileName>
+      <FilenameWithoutPath>power_manager.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

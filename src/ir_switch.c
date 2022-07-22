@@ -5,8 +5,220 @@
 /*
 	PC9  ir_out 红外接收段   timer2ch2 全映射  TIMER7_CH3
 	PC8  红外发射管  		timer2ch3 全映射  TIMER7_CH2
+
+
+	根据红外的原理，我只要发出38kHZ的信号，接收头就会默认为接收到高电平，经三极管后，输出低电平即可
+
+	接收引脚为低电平，即可认为收到了红外发射的信号，没收到则为高电平
+
+	PC8 设置为pwm 38KHZ(占空比50%)，持续发送  （为了省电可以100ms发送一次）使用定时器7
+	PC9 输入，低有效（表示接收到了信号，表示未佩戴），高则无效（表示没有收到信号，表示已经佩戴）
 */
 
+#define PWM_PIN GPIO_PIN_8
+#define PWM_PORT GPIOC
+#define PWM_PORT_RCU RCU_GPIOC
+#define PWM_TIMER_RCU  RCU_TIMER7    //
+#define PWM_TIMER  TIMER7
+#define PWM_TIMER_CH TIMER_CH_2
+
+uint16_t PWM_DEGREE_MAX = (uint16_t)(1000/38);   //PWM频率  26为38KHZ   1us计个数，4000计算的频率就是1000000/4000=250Hz 
+
+
+
+void ir_pwm_init(void)
+{
+	uint16_t degree = 50;    //占空比50%
+	//PB15 通道
+	timer_parameter_struct initpara;
+	timer_oc_parameter_struct ocpara;
+	//1. io引脚设置复用功能	
+	gpio_init(PWM_PORT, GPIO_MODE_AF_PP, GPIO_OSPEED_2MHZ, PWM_PIN);   //复用功能	
+	//PB15 默认映射tim0 ch2的N通道（从0开始数）
+	//gpio_pin_remap_config(GPIO_TIMER2_PARTIAL_REMAP, ENABLE);    //部分映射
+	
+	//2. 定时器时钟使能
+	rcu_periph_clock_enable(PWM_TIMER_RCU);  //定时器模块时钟使能
+		
+	if(degree > 100)
+	{
+		degree = 100;
+	}
+	
+	//3. 初始化定时器的数据结构  /* initialize TIMER init parameter struct */
+	timer_struct_para_init(&initpara);
+	initpara.period = PWM_DEGREE_MAX-1;  //重载的数字，频率20kHZ
+	initpara.prescaler = (SystemCoreClock/1000000)-1;  //预分频数，得到是1Mhz的脉冲  
+		
+	//4. 初始化定时器      /* initialize TIMER counter */
+	timer_init(PWM_TIMER, &initpara);
+		
+	//5. 初始化定时器通道的数据结构 /* initialize TIMER channel output parameter struct */
+	timer_channel_output_struct_para_init(&ocpara);	
+#ifndef PWM_TIMER_USE_CHN
+	ocpara.outputstate  = TIMER_CCX_ENABLE;  //输出通道使能	
+#else
+    ocpara.outputnstate = TIMER_CCXN_ENABLE;//使能互补通道输出
+#endif
+	//6. 初始化定时器通道   /* configure TIMER channel output function */
+	timer_channel_output_config(PWM_TIMER, PWM_TIMER_CH, &ocpara);
+			
+	//7. 初始化定时器通道输出方式设置   /* configure TIMER channel output compare mode */
+	timer_channel_output_mode_config(PWM_TIMER, PWM_TIMER_CH, TIMER_OC_MODE_PWM1);
+	/* configure TIMER channel output pulse value */
+	
+	//8. 初始化定时器通道输出脉冲宽带
+	timer_channel_output_pulse_value_config(PWM_TIMER, PWM_TIMER_CH, (100-degree) * PWM_DEGREE_MAX/100);
+
+	//9. 初始化定时器通道输出使能
+	//timer_channel_output_fast_config(TIMER2, TIMER_CH_0, TIMER_OC_FAST_ENABLE);
+	timer_channel_output_shadow_config(PWM_TIMER, PWM_TIMER_CH, TIMER_OC_SHADOW_DISABLE);	  //stm32似乎用的是这个0x8
+	//10.初始化，定时器不使能 2022-04-18	
+	
+	
+	/* enable a TIMER */
+	if(PWM_TIMER == TIMER0 || PWM_TIMER == TIMER7)
+		timer_primary_output_config(PWM_TIMER, ENABLE);
+	timer_auto_reload_shadow_enable(PWM_TIMER);
+}
+
+
+
+//开启定时器则发送38Khz频率，此时接收器的数据为1，输出电平为0
+void ir_send_high(void)
+{
+	timer_enable(PWM_TIMER);   //开启定时器}
+}
+
+//关闭定时器则不再发送38Khz频率，此时接收器的数据为0，输出电平为1
+void ir_send_low(void)
+{
+	timer_disable(PWM_TIMER);   //开启定时器}
+}
+
+
+
+//红外接收引脚，设置为中断方式。
+void ir_detect_init(void)
+{
+	rcu_periph_clock_enable(RCU_GPIOC);			
+	gpio_init(GPIOC, GPIO_MODE_IPU, GPIO_OSPEED_2MHZ, GPIO_PIN_9);	  //PC9设置为输入模式
+
+//设置为中断方式。
+#ifdef IR_DETECT_USE_IRQ
+	// 设置优先级
+    nvic_irq_enable(EXTI5_9_IRQn, 2U, 2U);
+    
+    // 设置EXTI触发源
+    gpio_exti_source_select(GPIO_PORT_SOURCE_GPIOC, GPIO_PIN_SOURCE_9);
+
+    // 下降沿中断
+    exti_init(EXTI_9, EXTI_INTERRUPT, EXTI_TRIG_BOTH); //双边缘触发
+    // 清中断标志
+    exti_interrupt_flag_clear(EXTI_9);
+	exti_interrupt_enable(EXTI_9);
+#endif	
+
+}
+
+//关闭irq检测，关机时就不需要了。
+void ir_detect_off(void)
+{
+	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
+	ir_send_low(); //红外发射停止
+	
+	exti_interrupt_disable(EXTI_9); //中断禁止
+	nvic_irq_disable(EXTI5_9_IRQn);   //中断禁止
+}
+
+
+
+#ifdef IR_DETECT_USE_IRQ
+
+static uint16_t ir_detect_time_out = 5;    //中断接收超时时间
+
+void ir_irq9_handle(void)
+{
+	ir_detect_time_out = 5;   // 5次就是500ms的时间
+}
+
+
+// 100ms 进入1次
+//系统开机才检测，不开机就不用检测了！！！
+// 红外发送也是在这的。
+void ir_irq9_detect_task(void)
+{
+	static uint16_t n = 0;   //未佩戴时间计时
+	static uint16_t count = 0; //用于计时佩戴的时间
+	static uint16_t k = 0;
+	
+	if(get_system_run_status() == DEV_POWEROFF) //关机后，不再进行计时操作
+	{
+		n = 0;
+		count = 0;
+		k = 0;
+		return ;
+	}
+	
+	
+	if(ir_detect_time_out)  //未佩戴的时候，激光关闭
+	{
+		ir_detect_time_out -- ;  //倒计时减少
+		
+		//关闭激光照射
+		if(n == 0)
+		{
+			pwm_all_change(0);  //
+			DBG_PRINTF("ERROR : ir_irq9_detect_task detect device off ,and poweroff laser\r\n");
+		}
+		n++;
+		
+		if(n > 1200)   //2min = 120秒，1秒进入10次
+		{
+			DBG_PRINTF("ERROR : ir_irq9_detect_task detect device off 2 mins,and system  go to poweroff\r\n");
+			count = 0;   //佩戴时间清零
+			system_power_off();   //关机
+		}
+		
+	}
+	else  //没有接收到信号了，表示佩戴了头盔
+	{
+		 if(n)  //清零计数值
+			 n = 0;
+		 		 
+		 //开启激光
+		 if(count == 0)   //第一次进来的时候，开启全部激光
+		 {
+			 pwm_all_change(100);
+			 DBG_PRINTF("ir_irq9_detect_task detect someone ,and poweron laser\r\n");
+		 }
+		 //判断时间是否到了最长时间限制
+		  count ++;   //佩戴时间计时开始
+		 if(count > (60*28*10))   //49200 小于65535
+		 {
+			 DBG_PRINTF("ir_irq9_detect_task task is run 28 mins,and system poweroff\r\n");
+			 system_power_off();   //时间到关机
+			 count = 0;
+			 
+		 }		 
+	}
+	
+	
+	//k 是用于发送红外的，高低电平的翻转，不断的触发中断
+	k++;
+	if(k == 1)
+		ir_send_high();   //发送高电平，100ms
+	else if(k < 5)
+		ir_send_low();   //发送低电平，300ms
+	else	
+		k = 0;
+}
+
+
+
+#endif
+
+#if 0
 
 
 /**
@@ -169,7 +381,7 @@ void TIMER3_IRQHandler(void)
 
 
 
-#if 0
+
 
 // A code block
 #include "ir.h"

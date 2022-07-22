@@ -28,8 +28,8 @@ typedef struct btn_info{
 	uint16_t  pressCnt;     //长按区分
 }BTN_INFO;
 
-
-
+//初始化为外部中断模式，用于睡眠唤醒
+void btn_init_irq(void);
 
 void task1_btn_scan(void);
 

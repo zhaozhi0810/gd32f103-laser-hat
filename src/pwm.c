@@ -29,7 +29,7 @@ uint8_t g_pwm[7] = {0};   //每一个通道设置不同的pwm值，pwm范围0-100。一般情况是7
 static uint8_t g_pwm_status = 0;  //0-6位，1表示开启激光，0表示关闭激光
 #define PWM_HZ 100   //设置pwm的频率，定时器每10ms进入一次，即为100HZ
 
-
+static uint8_t laser_area_control = 0x7f;  //表示7个区域全开，可以设置对应的区域 
 
 
 //用于普通的io端口，使用定时器去模拟pwm
@@ -61,15 +61,17 @@ void laser_enable(unsigned char area)
 	if(!area)
 	{
 		laser_disable();
+		MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 		return;
 	}
 	
 	if(get_system_run_status() == DEV_POWEROFF)
 	{
 		laser_disable();
+		MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 		return;
 	}
-	
+	MY_PRINTF("%s %d area = %d\r\n",__FUNCTION__,__LINE__,area);
 //	gpio_bit_set(GPIOA, GPIO_PIN_12);  //PWM_M
 	if(area & 1)
 		gpio_bit_set(GPIOB, GPIO_PIN_4);
@@ -121,6 +123,8 @@ static void laser_disable(void)
 	gpio_bit_reset(GPIOB, GPIO_PIN_3 | GPIO_PIN_4 |GPIO_PIN_5);
 	gpio_bit_reset(GPIOC, GPIO_PIN_12 | GPIO_PIN_10 |GPIO_PIN_11);
 	gpio_bit_reset(GPIOD, GPIO_PIN_2);
+	
+	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 }
 
 
@@ -141,6 +145,8 @@ void pwm_out(uint8_t ch,uint8_t degree)
 	
 	
 	g_pwm[ch] = degree;
+	
+	MY_PRINTF("%s %d ch = %d degree = %d\r\n",__FUNCTION__,__LINE__,ch,degree);
 }
 
 
@@ -156,11 +162,26 @@ void pwm_all_change(uint8_t degree)
 
 	for(i=0;i<7;i++)
 	{
-		g_pwm[i] = degree; 
-					
+		g_pwm[i] = degree; 					
 	}
+	
+	MY_PRINTF("%s %d degree = %d\r\n",__FUNCTION__,__LINE__,degree);
 }
 
+
+//增加一个区域的激光 area取值0-6
+void laser_add_a_area(uint8_t area)
+{
+	if(area < 7)
+		laser_area_control |= 1<<area;
+}
+
+//减少一个区域的激光 area取值0-6
+void laser_sub_a_area(uint8_t area)
+{
+	if(area < 7)
+		laser_area_control &= ~(1<<area);
+}
 
 
 //100HZ的频率，10ms进入一次
@@ -170,7 +191,7 @@ void laser_run_pwm_task(void)
 	uint8_t i;
 	
 	//关机状态下不控制激光了
-	if(get_system_run_status() == DEV_POWEROFF)
+	if(get_system_run_status() <= DEV_POWEROFF)  //有几种状态是不开机的
 	{
 		count = 0;
 		laser_enable(0);   //确保激光全部关闭
@@ -180,7 +201,7 @@ void laser_run_pwm_task(void)
 	
 	if(count < PWM_HZ)
 	{
-		g_pwm_status = 0x7f;   //默认设置全部点亮
+		g_pwm_status = laser_area_control;   //默认设置全部点亮，由laser_control控制哪些区域要点亮
 		
 		for(i=0;i<7;i++)
 		{

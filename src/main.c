@@ -1,6 +1,9 @@
 
 
-
+/*
+	°´¼ü¿ª¹Ø»ú£º2022-07-22
+	¸ù¾İÔ­ÀíÍ¼£¬°´¼ü¿ÉÒÔÊ¹µ¥Æ¬»úÍ¨µç£¬ÔÚµç³Ø¹©µçµÄÇé¿öÏÂ
+*/
 
 
 #include "includes.h"
@@ -33,10 +36,10 @@ uint16_t g_task_id;   //Ã¿Ò»¸öÎ»¶ÔÓ¦Ò»¸öÈÎÎñ£¬Îª1±íÊ¾ĞèÒªÆô¶¯ÈÎÎñ£¬ÔÚÈÎÎñÖĞÇåÁã¸
 
 static void BoardInit(void)
 {
-	etError   error;       // error code 
-	uint32_t      serialNumber;// serial number 
-	float        temperature; // temperature [¡ãC] 
-	float        humidity;    // relative humidity [%RH] 
+//	etError   error;       // error code 
+//	uint32_t      serialNumber;// serial number 
+//	float        temperature; // temperature [¡ãC] 
+//	float        humidity;    // relative humidity [%RH] 
 
 	
 	//0. ÖĞ¶Ï·Ö×é³õÊ¼»¯
@@ -67,20 +70,27 @@ static void BoardInit(void)
 	
 	dev_status_get_init();
 	
-	error = SHT3x_ReadSerialNumber(&serialNumber); 
-	if(error != NO_ERROR){} // do error handling here 
-	   
-	  // demonstrate a single shot measurement with clock-stretching 
-	error = SHT3X_GetTempAndHumi(&temperature, &humidity, REPEATAB_HIGH, MODE_CLKSTRETCH, 50); 
-	if(error != NO_ERROR){} // do error handling here  
-	   
+//	error = SHT3x_ReadSerialNumber(&serialNumber); 
+//	if(error != NO_ERROR){} // do error handling here 
+//	   
+//	  // demonstrate a single shot measurement with clock-stretching 
+//	error = SHT3X_GetTempAndHumi(&temperature, &humidity, REPEATAB_HIGH, MODE_CLKSTRETCH, 50); 
+//	if(error != NO_ERROR){} // do error handling here  
+//	   
 //	  // demonstrate a single shot measurement with polling and 50ms timeout 
 //	error = SHT3X_GetTempAndHumi(&temperature, &humidity, REPEATAB_HIGH, MODE_POLLING, 50); 
 //	if(error != NO_ERROR){} // do error handling here
 }
 
 
-
+//void ulp_deepsleepmode_enable(void)
+//{
+//	nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
+//	btn_init_irq();    //Ö»³õÊ¼»¯°´¼üÒı½ÅÎªÖĞ¶ÏÒı½Å£¬ÓÃÓÚcpu»½ĞÑ
+//	pmu_to_deepsleepmode(PMU_LDO_LOWPOWER,WFI_CMD);
+//	SystemInit();
+//	SystemCoreClockUpdate();
+//}
 
 
 int main(void)
@@ -89,30 +99,24 @@ int main(void)
 	const task_t task[TASK_MAX]={btns_scan    //ÈÎÎñ1£¬ÉÏµç°´Å¥É¨Ãè								
 							,[1] = laser_run_pwm_task       		//ÈÎÎñ2£¬¼¤¹âµÄpwmÉèÖÃ£¬10msÒ»´Î
 						//	,[2] = Task_Check_CPU_Run_Status    //ÈÎÎñ3£¬ÔËĞĞ×´Ì¬¼ì²â£¬¹Ø»úÖØÆô¿ØÖÆ£¬Õâ¸öÓÅÏÈ¼¶¿ÉÒÔµÍÒ»µã
-							,[3] = get_sht30_tmp_task       //ÈÎÎñ4£¬ÎÂÊª¶È£¬µçÑ¹¼à¿Ø¶ÁÈ¡ÈÎÎñ£¬2000msµ÷ÓÃÒ»´Î
-							,[4] = Task_Led_Show_Work  //ÈÎÎñ5£¬¶¨Ê±Ïòcpu»ã±¨£¬500msÒ»´Î //2022-04-21²»ÔÙÖ÷¶¯·¢ËÍ	
-					//		,[5] = com3_frame_handle    //ÎŞĞèÒª
+							,[3] = get_sht30_tmp_task       //ÈÎÎñ4£¬ÎÂÊª¶È¶ÁÈ¡ÈÎÎñ£¬1000msµ÷ÓÃÒ»´Î
+							,[4] = Task_Led_Show_Work  //ÈÎÎñ5£¬ÏµÍ³×´Ì¬µÆ¿ØÖÆ	
+							,[5] = ir_irq9_detect_task    //ºìÍâ¿ª¹Ø¼ì²â£¬100ms½øÈëÒ»´Î,°üº¬ºìÍâ·¢Éä
 						//	,[14] = iwdog_feed         //×îºóÒ»¸öÈÎÎñÎ¹¹·
 					//	,0
 //						,[15]=Task_Led_Show_Work       //ÈÎÎñ16£¬×îºóÒ»¸öÈÎÎñ£¬ÈÃ¹¤×÷ledµÆÉÁË¸,1sµ÷ÓÃÒ»´Î
 					//ÒòÎª¹¤×÷µÆ²»ÄÜÕı³£Ê¹ÓÃ£¬ËùÒÔÉ¾³ı¸ÃÈÎÎñ¡£2021-12-01
 	};
 	
+	//¿ª»ú½øÈëË¯ÃßÄ£Ê½
+//	ulp_deepsleepmode_enable();
 	
 	//1. ³õÊ¼»¯
 	BoardInit();
 
-	printf("%s\n\r", g_build_time_str);
-	printf("BoardInit done! 2022-07-01\n\r");
+	printf("%s\r\n", g_build_time_str);
+	printf("BoardInit done! 2022-07-22\r\n");
 	
-//	Delay1ms(2000);
-//	for(i=0;i<32;i++)
-//	{
-//		printf("i = %d\n\r", i);
-//		key_light_leds_control(i,SET);
-//		Delay1ms(2000);
-//	}
-
 	
 	while(1)
 	{

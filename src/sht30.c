@@ -580,15 +580,15 @@ etError SHT3X_SofloatReset(void)
 { 
   etError error; // error code 
  
-//  error = SHT3X_StartWriteAccess(); 
+  error = SHT3X_StartWriteAccess(); 
 
-//  // write reset command 
-//  error |= SHT3X_WriteCommand(CMD_SOfloat_RESET); 
-// 
-//  SHT3X_StopAccess(); 
-//   
-//  // if no error, wait 50 ms afloater reset 
-//  if(error == NO_ERROR) Delay1ms(50);  
+  // write reset command 
+  error |= SHT3X_WriteCommand(CMD_SOfloat_RESET); 
+ 
+  SHT3X_StopAccess(); 
+   
+  // if no error, wait 50 ms afloater reset 
+  if(error == NO_ERROR) Delay1ms(50);  
  
   return error; 
 } 
@@ -831,10 +831,39 @@ void get_sht30_tmp_task(void)
 	error = SHT3X_ReadMeasurementBuffer(&g_temperature, &g_humidity); 
 	if(error == NO_ERROR) 
 	{ 
+		MY_PRINTF("%s %d temp = %f humi = %f\r\n",__FUNCTION__,__LINE__,g_temperature, g_humidity);
 	//new temperature and humidity values 
-//		g_temperature = temperature;
-//		g_humidity = humidity;
-	} 
+		if(g_temperature < 30.0)
+		{
+			pwm_all_change(100);
+		}
+		else if(g_temperature < 35.0)
+		{
+			pwm_all_change(70);		
+		}
+		else if(g_temperature < 40.0)
+		{
+			pwm_all_change(50);		
+		}
+		else if(g_temperature < 45.0)
+		{
+			pwm_all_change(30);		
+		}
+		else if(g_temperature < 48.0)  //50度了
+		{
+			pwm_all_change(20);		
+		}
+		else if(g_temperature < 50.0)  //50度了
+		{
+			pwm_all_change(10);		
+		}
+		else //50度以上了
+			pwm_all_change(0);
+	}
+	else
+	{
+		DBG_PRINTF("ERROR:SHT3X_ReadMeasurementBuffer\n");
+	}
 }
 
 

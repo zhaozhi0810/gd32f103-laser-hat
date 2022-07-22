@@ -15,5 +15,9 @@ uint16_t ADC_Read(uint8_t channel);
 */
 uint16_t ADCgetBatVol(void);
 
+
+//电池电压检测任务,500ms进入一次
+void bat_vol_task(void);
+
 #endif
 

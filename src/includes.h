@@ -57,5 +57,8 @@ typedef enum{
 
 #include "wrok_leds.h"
 #include "adc_vol.h"
+
+#include "ir_switch.h"   //∫ÏÕ‚ºÏ≤‚
+
 #endif
 

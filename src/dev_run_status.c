@@ -41,15 +41,33 @@ system_run_status_t get_system_run_status(void)
 //开机
 void system_power_on(void)
 {
+	uint16_t vol;
+	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
+	
+	vol = ADCgetBatVol();   //获得电压值
+	MY_PRINTF("%s %d vol = %d\r\n",__FUNCTION__,__LINE__,vol);
+	if(vol <= 30)
+	{
+		DBG_PRINTF("ERROR:power is too low vol = %d\n",vol);
+		return ;
+	}
+	
+	// 2. 设置系统状态为正常启动状态
 	set_system_run_status(DEV_RUN_NORMAL);
+	
+	// 3. 红外检测开关开始工作
+	ir_detect_init();   //红外检测初始化
+	
 }
 
 
 //关机
 void system_power_off(void)
 {
+	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 	set_system_run_status(DEV_POWEROFF);  //系统状态修改为关机
 	laser_enable(0);   //激光全部关闭
+	ir_detect_off();   //红外检测关闭
 }
 
 
@@ -57,12 +75,14 @@ void system_power_off(void)
 //锂电池的5v升压输出
 void output_5v_enable(void)
 {
+	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 	gpio_bit_set(GPIOB, GPIO_PIN_15);  //5v输出
 }
 
 //锂电池的5v升压输出
 void output_5v_disable(void)
 {
+	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 	gpio_bit_reset(GPIOB, GPIO_PIN_15);  //5v不输出
 }
 
@@ -97,10 +117,7 @@ void dev_status_get_init(void)
 	gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ, GPIO_PIN_15);	
 	gpio_bit_reset(GPIOB, GPIO_PIN_15);  //5v不输出
 	
-	//3. 红外对射管的初始化
-	
-	
-	
+	//3. 红外对射管的初始化	
 }
 
 
