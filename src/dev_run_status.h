@@ -10,7 +10,8 @@ typedef enum {
 	DEV_VOL_LE36  =  4,   //电压低于3.6	
 	DEV_RUN_NORMAL = 5,  //正常运行
 	DEV_CHARGE  =  6,   //充电
-	DEV_CHARGE_OK  =  7   //充电完成
+	DEV_CHARGE_OK  =  7 ,  //充电完成
+	DEV_EXTERN_POWER  =  8   //外部供电，这时单片机是不会省电的
 }system_run_status_t;
 
 
@@ -34,15 +35,7 @@ void system_power_off(void);
 */
 void dev_status_get_init(void);
 
-//获得系统运行的状态
-//返回值大于0表示充电中，0表示未充电
-uint8_t get_bat_charge_status(void);
 
-//锂电池的5v升压输出,激光需要5v
-void output_5v_disable(void);
-
-//锂电池的5v升压输出
-void output_5v_enable(void);
 
 
 #endif

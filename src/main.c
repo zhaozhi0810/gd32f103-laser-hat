@@ -3,6 +3,9 @@
 /*
 	按键开关机：2022-07-22
 	根据原理图，按键可以使单片机通电，在电池供电的情况下
+	
+	在外接usb供电的情况下，还是要考虑开机关机的问题
+	
 */
 
 
@@ -41,34 +44,53 @@ static void BoardInit(void)
 //	float        temperature; // temperature [°C] 
 //	float        humidity;    // relative humidity [%RH] 
 
+	//0. 电源管理初始化
+	PowerManager_init();
 	
-	//0. 中断分组初始化
+	//1. 中断分组初始化
 	//NVIC_SetPriorityGrouping(4);  //均为4个等级
 	nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
 	
-	//0.1 复用功能模块通电
+	//2 复用功能模块通电
     rcu_periph_clock_enable(RCU_AF);
 	
-	//只保留sw接口，其他用于GPIO端口
+	//3.只保留sw接口，其他用于GPIO端口
 	gpio_pin_remap_config(GPIO_SWJ_SWDPENABLE_REMAP, ENABLE);
 	
-	//1.串口初始化
+	//4.串口初始化
 	//#define DEBUG_COM_NUM 0   //调试串口号
 	//#define TOCPU_COM_NUM 1   //与cpu通信的串口
 	gd_eval_com_init(DEBUG_COM_NUM);  //用于调试
 //	gd_eval_com_init(TOCPU_COM_NUM);  //用于与cpu数据通信,改到cpu上电后再初始化
 	
-	//2.systick 初始化
+	//5.systick 初始化
 	SystickConfig();
 	
-	//sht30温度传感器,使用8位地址！！！
+	//6. sht30温度传感器,使用8位地址！！！
 	SHT3X_Init(0x44<<1); // Address: 0x44 = Sensor on EvalBoard connector   pin2 接地
                     //          0x45 = Sensor on EvalBoard  pin2 接vcc
 	
-	//激光控制初始化
+	//7. 激光控制初始化 pwm.c
 	laser_control_init();
 	
-	dev_status_get_init();
+//	dev_status_get_init();
+	
+	//8. 开关机按键控制初始化
+	gd_all_keys_init();
+	
+	
+	//9. 状态指示灯的初始化 work_leds.c
+	Led_Show_Work_init();
+	
+	//10. 用于电压采样的控制器初始化
+	ADC_Init();
+	
+	//11. 红外检测开关发送端初始化
+	ir_pwm_init();
+	ir_detect_init();   //接收端初始化
+	
+	
+	
 	
 //	error = SHT3x_ReadSerialNumber(&serialNumber); 
 //	if(error != NO_ERROR){} // do error handling here 
@@ -100,8 +122,9 @@ int main(void)
 							,[1] = laser_run_pwm_task       		//任务2，激光的pwm设置，10ms一次
 						//	,[2] = Task_Check_CPU_Run_Status    //任务3，运行状态检测，关机重启控制，这个优先级可以低一点
 							,[3] = get_sht30_tmp_task       //任务4，温湿度读取任务，1000ms调用一次
-							,[4] = Task_Led_Show_Work  //任务5，系统状态灯控制	
-							,[5] = ir_irq9_detect_task    //红外开关检测，100ms进入一次,包含红外发射
+							,[4] = Task_Led_Show_Work  //任务5，系统状态灯控制，50ms一次	
+							,[5] = ir_irq9_detect_task    //任务6，红外开关检测，100ms进入一次,包含红外发射
+							,[6] = bat_vol_task          //任务7，电池电压监控,充电中不检测电压
 						//	,[14] = iwdog_feed         //最后一个任务喂狗
 					//	,0
 //						,[15]=Task_Led_Show_Work       //任务16，最后一个任务，让工作led灯闪烁,1s调用一次

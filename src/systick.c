@@ -121,78 +121,45 @@ void Delay1us(uint32_t nus)
 */
 void Systick_Int_Update(void)
 {
-    static uint16_t times = 0;
+//    static uint16_t times = 0;
 	g_localtime ++;
 	
 	DelayDecrement();
 	
-	//控制任务的执行
+	//通电就要检测按键的情况
 	if(g_localtime % TASK1_TICKS_INTERVAL == 0)
 	{
 		g_task_id |= 1;  //任务1，上电开关扫描
 	}
 	
 	
-	if(g_localtime % TASK2_TICKS_INTERVAL == 2)
+	//外接电源时需要亮灯
+	if(g_localtime % TASK5_TICKS_INTERVAL == 15)
 	{
-		g_task_id |= 2;   //任务2，按键扫描
-	}
-
-	if(g_localtime % TASK15_TICKS_INTERVAL == 23)
-	{
-		g_task_id |= 1<<14;   //任务15，单片机看门狗  2022-06-02   800ms超时
+		g_task_id |= 0x10;   //任务5，系统状态灯控制，50ms一次
 	}
 	
-	if(g_localtime % TASK16_TICKS_INTERVAL == 10)
-	{
-		g_task_id |= 1<<15;   //任务16，工作指示灯闪烁
-	}
-		
-//	if(g_cpu_run_status > LS3A_POWEROFF)   //非关机模式扫描
-//	{
-//		if(g_cpu_run_status == LS3A_RUN_OS)
-//		{
-////			if(g_localtime % TASK2_TICKS_INTERVAL == 2)
-////			{
-////		//		g_task_id |= 2;   //任务2，18个按键扫描
-////			}
-//					
-//			if(g_localtime % TASK5_TICKS_INTERVAL == 0)
-//			{
-//				g_task_id |= (1<<4);   //任务5，500ms扫描，定时汇报温度等任务
-//			}
-//		}		
-//		//读取温度，为之后的屏幕加热做准备，2021-12-15
-//		if(g_localtime % TASK4_TICKS_INTERVAL == 0)
-//		{
-//			g_task_id |= 8;   //任务4，200ms扫描，温湿度，电压监控读取任务
-//		}		
-//	}
-	
-	//读取温度，为之后的屏幕加热做准备，2021-12-15
-		if(g_localtime % TASK4_TICKS_INTERVAL == 0)
-		{
-			g_task_id |= 8;   //任务4，200ms扫描，温湿度，电压监控读取任务
-		}
-	
-	//开机状态扫描由2022-01-04修改
-//	if(SET == Get_Cpu_Power_Status())   //上电后 2022-01-04增加。v1.2 屏蔽前1.8秒的状态
+	if(get_system_run_status() > DEV_POWEROFF)  //开机之后才需要做的事情
 	{		
-		if(times < 1800)	//屏蔽上电后1.8秒的状态
-		{				
-			times++;
-		}
-		else if(g_localtime % TASK3_TICKS_INTERVAL == 4)
+		if(g_localtime % TASK2_TICKS_INTERVAL == 5)
 		{
-			g_task_id |= 4;   //任务3，10ms扫描，检测关机和重启
-		}		
-	}
-//	else 
-//		if(times) //屏蔽上电后1.8秒的状态，2022-04-21 。
-//	{
-//		times = 0;
-//	}
-	 
+			g_task_id |= 2;   //任务2 激光的pwm设置，10ms一次
+		}
+
+		if(g_localtime % TASK4_TICKS_INTERVAL == 666)
+		{
+			g_task_id |= 8;   //任务4，温湿度读取任务，1000ms调用一次
+		}
+		
+		if(g_localtime % TASK6_TICKS_INTERVAL == 77)
+		{
+			g_task_id |= 0x20;   //任务6，红外开关检测，100ms进入一次,包含红外发射
+		}
+		if(g_localtime % TASK7_TICKS_INTERVAL == 133)
+		{
+			g_task_id |= 0x40;   //任务7，电池电压监控,充电中不检测电压 500ms一次
+		}
+	}	 
 }
 
 

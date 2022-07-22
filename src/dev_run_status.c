@@ -24,6 +24,9 @@
 
 static system_run_status_t g_run_status;  //系统运行的状态
 
+
+
+
 //修改系统运行的状态
 void set_system_run_status(system_run_status_t status)
 {
@@ -38,6 +41,9 @@ system_run_status_t get_system_run_status(void)
 }
 
 
+
+
+
 //开机
 void system_power_on(void)
 {
@@ -46,7 +52,7 @@ void system_power_on(void)
 	
 	vol = ADCgetBatVol();   //获得电压值
 	MY_PRINTF("%s %d vol = %d\r\n",__FUNCTION__,__LINE__,vol);
-	if(vol <= 30)
+	if(vol <= 30)  //电压太低了，不启动
 	{
 		DBG_PRINTF("ERROR:power is too low vol = %d\n",vol);
 		return ;
@@ -58,42 +64,35 @@ void system_power_on(void)
 	// 3. 红外检测开关开始工作
 	ir_detect_init();   //红外检测初始化
 	
+	
+	// 4. 外设3.3v电源开启
+	output_BT3V_enable();
 }
 
 
 //关机
 void system_power_off(void)
 {
+	PowerManager_Mcu_Poweroff();   //单片机断电
+		
+	//没有连接usb电源的话，后面就不会处理了。
 	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 	set_system_run_status(DEV_POWEROFF);  //系统状态修改为关机
-	laser_enable(0);   //激光全部关闭
+	laser_enable(0);   //激光全部关闭，5v的电源被关闭
 	ir_detect_off();   //红外检测关闭
+	
+	//4. 外设3.3v电源关闭
+	output_BT3V_disable();
+	
 }
 
 
 
-//锂电池的5v升压输出
-void output_5v_enable(void)
-{
-	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
-	gpio_bit_set(GPIOB, GPIO_PIN_15);  //5v输出
-}
-
-//锂电池的5v升压输出
-void output_5v_disable(void)
-{
-	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
-	gpio_bit_reset(GPIOB, GPIO_PIN_15);  //5v不输出
-}
 
 
 
-//获得系统运行的状态
-//返回值大于0表示充电中，0表示未充电
-uint8_t get_bat_charge_status(void)
-{
-	return !gpio_input_bit_get(GPIOC, GPIO_PIN_6);  //充电时为低电平，所以取反一下
-}
+
+
 
 
 /*
@@ -104,22 +103,17 @@ uint8_t get_bat_charge_status(void)
 */
 void dev_status_get_init(void)
 {
-	//0. 用于电压采样的控制器初始化
-	ADC_Init();
 	
-	//2. 充电状态的引脚初始化
-	//2.1 充电状态读取
-	rcu_periph_clock_enable(RCU_GPIOC);			
-	gpio_init(GPIOC, GPIO_MODE_IPU, GPIO_OSPEED_2MHZ, GPIO_PIN_6);	  //PC6设置为输入模式
-	
-	//2.2 升压5v输出使能，时钟使能
-	rcu_periph_clock_enable(RCU_GPIOB);			
-	gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ, GPIO_PIN_15);	
-	gpio_bit_reset(GPIOB, GPIO_PIN_15);  //5v不输出
-	
+		
 	//3. 红外对射管的初始化	
 }
 
 
 
+
+//设备运行时的状态切换 200ms进入一次吧
+void dev_run_status_monitor_task(void)
+{
+	
+}
 

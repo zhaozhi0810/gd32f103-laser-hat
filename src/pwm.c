@@ -71,6 +71,10 @@ void laser_enable(unsigned char area)
 		MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 		return;
 	}
+	
+	//开启5v外设电源供电
+	output_5v_enable();
+	
 	MY_PRINTF("%s %d area = %d\r\n",__FUNCTION__,__LINE__,area);
 //	gpio_bit_set(GPIOA, GPIO_PIN_12);  //PWM_M
 	if(area & 1)
@@ -116,9 +120,10 @@ void laser_enable(unsigned char area)
 
 // 激光禁止，
 static void laser_disable(void)
-{
-	//1. 关闭 pl2628
-	//低电平,无效，高电平使能
+{	
+	//关闭5v外设电源供电
+	output_5v_disable();
+	
 //	gpio_bit_reset(GPIOA, GPIO_PIN_12);  //PWM_M
 	gpio_bit_reset(GPIOB, GPIO_PIN_3 | GPIO_PIN_4 |GPIO_PIN_5);
 	gpio_bit_reset(GPIOC, GPIO_PIN_12 | GPIO_PIN_10 |GPIO_PIN_11);

@@ -18,23 +18,28 @@
 
 
 
-#define BTN_CODE_START 0xE8     //根据技术文档修改的   2021-09-29
+//#define BTN_CODE_START 0xE8     //根据技术文档修改的   2021-09-29
 
 
 
-typedef struct btn_info{
-	uint8_t  value;	     //值，0表示松开，1表示按下
-	uint8_t  reportEn;   //1，消抖检测到了，0没有检测到按键
-	uint16_t  pressCnt;     //长按区分
-}BTN_INFO;
+//typedef struct btn_info{
+//	uint8_t  value;	     //值，0表示松开，1表示按下
+//	uint8_t  reportEn;   //1，消抖检测到了，0没有检测到按键
+//	uint16_t  pressCnt;     //长按区分
+//}BTN_INFO;
+
+
+//配置所有的按键，其实只有一个按键
+void gd_all_keys_init(void);
+
 
 //初始化为外部中断模式，用于睡眠唤醒
-void btn_init_irq(void);
+//void btn_init_irq(void);
 
-void task1_btn_scan(void);
+//void task1_btn_scan(void);
 
 //按键处理函数
-void btn_handle(void);
+//void btn_handle(void);
 //按键扫描程序
 void btns_scan(void); // 10ms 调用一次
 

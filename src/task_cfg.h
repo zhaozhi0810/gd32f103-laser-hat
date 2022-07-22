@@ -13,13 +13,15 @@
 
 #define TASK_MAX 16   //目前最大的任务数
 
-#define TASK1_TICKS_INTERVAL 10   //任务1，上电按钮开关扫描。
-#define TASK2_TICKS_INTERVAL 20   //任务2 10ms的间隔,矩阵按键扫描
-#define TASK3_TICKS_INTERVAL 10   //任务3，10ms扫描，检测操作系统关机和重启，读io引脚
-#define TASK4_TICKS_INTERVAL 277   //任务4，277ms扫描，温湿度，电压监控读取任务
-#define TASK5_TICKS_INTERVAL 500   //任务5，定时向龙芯cpu汇报任务，暂定500ms
-#define TASK15_TICKS_INTERVAL 533   //任务5，喂狗，暂定533ms
-#define TASK16_TICKS_INTERVAL 1000   //任务16，1s扫描，工作led闪烁任务.2021-12-01 任务删除
+#define TASK1_TICKS_INTERVAL 10   //任务1，上电按钮扫描 10ms。
+#define TASK2_TICKS_INTERVAL 10   //任务2 激光的pwm设置，10ms一次
+//#define TASK3_TICKS_INTERVAL 10   //任务3，空
+#define TASK4_TICKS_INTERVAL 1000   //任务4，温湿度读取任务，1000ms调用一次
+#define TASK5_TICKS_INTERVAL 50   //任务5，系统状态灯控制，50ms一次
+#define TASK6_TICKS_INTERVAL 100   //任务6，红外开关检测，100ms进入一次,包含红外发射
+#define TASK7_TICKS_INTERVAL 500   //任务7，电池电压监控,充电中不检测电压 500ms一次
+//#define TASK15_TICKS_INTERVAL 533   //任务5，喂狗，暂定533ms
+//#define TASK16_TICKS_INTERVAL 1000   //任务16，1s扫描，工作led闪烁任务.2021-12-01 任务删除
 
 extern uint16_t g_task_id;   //每一个位对应一个任务，为1表示需要启动任务，在任务中清零该位
 //2021-09-30增加task_allow,控制定时器，设置任务运行

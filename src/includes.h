@@ -59,6 +59,6 @@ typedef enum{
 #include "adc_vol.h"
 
 #include "ir_switch.h"   //红外检测
-
+#include "power_manager.h"    //电源管理部分
 #endif
 

@@ -115,7 +115,7 @@ void bat_vol_task(void)
 {
 	uint16_t vol;
 	
-	if(get_system_run_status() == DEV_CHARGE)  //充电时不检测电压
+	if(is_power_charge())//get_system_run_status() == DEV_CHARGE)  //充电时不检测电压
 	{
 		return;
 	}
