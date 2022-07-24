@@ -60,8 +60,8 @@ static void BoardInit(void)
 	//4.串口初始化
 	//#define DEBUG_COM_NUM 0   //调试串口号
 	//#define TOCPU_COM_NUM 1   //与cpu通信的串口
-	gd_eval_com_init(DEBUG_COM_NUM);  //用于调试
-//	gd_eval_com_init(TOCPU_COM_NUM);  //用于与cpu数据通信,改到cpu上电后再初始化
+	gd_eval_com_init(DEBUG_COM_NUM,115200);  //用于调试
+	gd_eval_com_init(TOCPU_COM_NUM,9600);  //用于与蓝牙模块通信
 	
 	//5.systick 初始化
 	SystickConfig();
@@ -89,7 +89,12 @@ static void BoardInit(void)
 	ir_pwm_init();
 	ir_detect_init();   //接收端初始化
 	
+	//12. 音乐播放器
+	wt588d_init();
 	
+	
+	//13. w25q64初始化
+	w25qxx_spi_init();
 	
 	
 //	error = SHT3x_ReadSerialNumber(&serialNumber); 

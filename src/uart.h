@@ -78,7 +78,7 @@ typedef struct{
 
   
 //串口初始化函数，参数要求是宏定义 EVAL_COM0 or EVAL_COM1
-void gd_eval_com_init(uint32_t com); 
+void gd_eval_com_init(uint32_t com_id,uint32_t baudrate); 
   
 //队列插入数据，返回0表示成功，其他表示失败
 int32_t QueueUARTDataInsert(Queue_UART_STRUCT *Queue,uint8_t data);

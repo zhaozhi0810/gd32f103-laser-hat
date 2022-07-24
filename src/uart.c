@@ -34,7 +34,7 @@ static uint8_t uart_inited = 0 ; //bit0,bit1有效，为1表示初始化了，�
     \param[out] none
     \retval     none
 */
-void gd_eval_com_init(uint32_t com_id)
+void gd_eval_com_init(uint32_t com_id,uint32_t baudrate)
 {
     uint32_t com = EVAL_COM0;
 		
@@ -59,7 +59,7 @@ void gd_eval_com_init(uint32_t com_id)
 
     /*4. uart控制器初始化 USART configure */
     usart_deinit(com);
-    usart_baudrate_set(com, 115200U);
+    usart_baudrate_set(com, baudrate);
     usart_word_length_set(com, USART_WL_8BIT);   //数据位
     usart_stop_bit_set(com, USART_STB_1BIT);    //停止位
     usart_parity_config(com, USART_PM_NONE);    //校验位

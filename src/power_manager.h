@@ -38,6 +38,13 @@ void output_BT3V_disable(void);
 //外部电源连接，正在充电返回1，返回2，表示已充满，没充电则0
 uint8_t is_power_charge(void);
 
+
+
+//音频芯片省电控制
+void set_MAX9700_enable(void);
+
+//音频芯片省电控制
+void set_MAX9700_shutdown(void);
 #endif
 
 

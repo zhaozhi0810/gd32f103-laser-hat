@@ -1,8 +1,8 @@
 
 
 /*
-用于处理与cpu之间的串口通信
-	串口为GD32的串口1，115200，8N1
+	用于处理与蓝牙之间的串口通信
+	串口为GD32的串口1，9600，8N1
 
 */
 
@@ -12,22 +12,27 @@
 
 #define CPU_UART_CMD_LEN 4 //cpu发出的都是4个字节
 //#define RECV_BUF_LEN 64
-static Queue_UART_STRUCT g_Queue_Cpu_Recv;   //接收cpu数据队列，用于接收中断
-frame_buf_t g_com_cpu_buf={{0},CPU_UART_CMD_LEN};    //缓存
+//static Queue_UART_STRUCT g_Queue_Cpu_Recv;   //接收cpu数据队列，用于接收中断
+//frame_buf_t g_com_cpu_buf={{0},CPU_UART_CMD_LEN};    //缓存
 
 #define CPU_UART_HEAD1 0xa5
 #define CPU_UART_HEAD2 0x5a
 
+#define USART_REC_LEN 32
 
+static uint8_t g_Usart_Rx_Buf[32];     //接收缓冲,最大USART_REC_LEN个字节.
 
+static uint8_t g_Usart_Rx_index = 0;  //接收的序号
+
+uint8_t send_to_debug = 0;   //发送到调试串口吗？ 0不发送，1发送
 
 
 
 //缓存初始化
-void Com_Cpu_Recive_Buff_Init(void)
-{
-	memset((void *)&g_Queue_Cpu_Recv, 0, sizeof(g_Queue_Cpu_Recv));
-}
+//void Com_Cpu_Recive_Buff_Init(void)
+//{
+//	memset((void *)&g_Queue_Cpu_Recv, 0, sizeof(g_Queue_Cpu_Recv));
+//}
 
 
 
@@ -41,10 +46,26 @@ void Com_Cpu_Rne_Int_Handle(void)
 {
 	uint8_t dat;
 
-	dat = (uint8_t)usart_data_receive(EVAL_COM1);//(USART3);   //接收就存到队列中！！！！！2021-12-02
+//	dat = (uint8_t)usart_data_receive(EVAL_COM1);//(USART3);   //接收就存到队列中！！！！！2021-12-02
 
-	QueueUARTDataInsert(&g_Queue_Cpu_Recv,dat);   //接收的数据存入队列中。
+//	g_Usart_Rx_Buf[g_Usart_Rx_index++] = (uint8_t)usart_data_receive(EVAL_COM1);
+//	
+//	QueueUARTDataInsert(&g_Queue_Cpu_Recv,dat);   //接收的数据存入队列中。
+	
+	
+	dat = (uint8_t)usart_data_receive(EVAL_COM1);
 
+	g_Usart_Rx_Buf[g_Usart_Rx_index++] = dat;
+	
+	if(dat == '\n')  //处理这帧数据
+	{
+		
+	}
+	
+	if(USART_REC_LEN <= g_Usart_Rx_index)  //缓存满了
+		g_Usart_Rx_index = 0;
+	
+	
 }
 
 
@@ -182,7 +203,7 @@ void Com_Frame_Handle(frame_buf_t* buf, Queue_UART_STRUCT* Queue_buf,message_han
 */
 void Com_Cpu_Idle_Int_Handle(void)
 {
-	Com_Frame_Handle(&g_com_cpu_buf, &g_Queue_Cpu_Recv,AnswerCpu_data);
+//	Com_Frame_Handle(&g_com_cpu_buf, &g_Queue_Cpu_Recv,AnswerCpu_data);
 }
 
 

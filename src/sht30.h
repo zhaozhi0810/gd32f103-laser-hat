@@ -19,6 +19,12 @@
 #include "includes.h" 
 #include "iic_app.h" 
  
+ 
+extern float        g_temperature; // temperature [°„C] 
+extern float        g_humidity;    // relative humidity [%RH]  
+
+
+
 //-- Enumerations ------------------------------------------------------------- 
 // Sensor Commands 
 typedef enum{ 

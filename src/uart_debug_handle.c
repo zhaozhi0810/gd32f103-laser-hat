@@ -29,58 +29,167 @@ static Queue_UART_STRUCT g_Queue_Debug_Recv;   //接收Debug数据队列，用于接收中断
 frame_buf_t g_com_debug_buf={{0},FRAME_LENGHT};    //数据处理缓存
 #endif
 
-//static char* g_Cpu_Run_Status_str[] = {
-//	"LS3A_POWER_DISABLE",   //确认是断电状态
-//	"LS3A_POWEROFF",    //关机，断电
-//	"LS3A_REBOOT",    //重启
-//	"LS3A_RUNNING",    //进入pmon
-//	"LS3A_RUN_OS",      //离开pmon，进入操作系统
-//	"LS3A_POWER_ENABLE"     //已经通电，但是没有进入PMON的前一段;
-//};
+
+
+//串口设置激光区域变化
+static void laser_area_control(uint8_t area,uint8_t add)
+{
+	if(area < '7' && area >= '0')
+	{
+		if(add)
+			laser_add_a_area(area-'0');
+		else
+			laser_sub_a_area(area-'0');
+	}
+	printf("laser_area_control  area = %d  add= %d\r\n",area-'0',add);	
+}
+
+
+
+//串口设置激光区域变化
+static void laser_pwm_control(uint8_t pwm)
+{
+	uint8_t degree;
+	if(pwm <= '9' && pwm >= '0')
+	{
+		degree = ((pwm - '0')+ 1 )*10;
+		pwm_all_change(degree);
+	}
+	printf("laser_pwm_control  degree = %d \r\n",degree);	
+}
+
+
+//串口设置音乐变化
+static void wt588d_control(uint8_t buf)
+{
+	if(buf == '1') //下一首
+	{
+		wt588d_playNextSound();
+	}
+	else if(buf == '2') //上一首
+	{
+		wt588d_playLastSound();
+	}
+	else if(buf == '3') //音量增
+	{
+		wt588d_setVolume_Acc();
+	}
+	else if(buf == '4') //音量减
+	{
+		wt588d_setVolume_Dec();
+	}
+	printf("wt588d_control  buf = %d\r\n",buf);	
+}
+
+
+
+const char* sys_run_status[]= {"DEV_BUG" ,     //故障
+	"DEV_VOL_LE30 ",    //电压低于3.0	
+	"DEV_POWEROFF",      //关机
+	"DEV_VOL_LE36 ",   //电压低于3.6	
+	"DEV_RUN_NORMAL",  //正常运行
+	"DEV_CHARGE",   //充电
+	"DEV_CHARGE_OK" ,  //充电完成
+	"DEV_EXTERN_POWER"   //外部供电，这时单片机是不会省电的};
+};
+
 
 //这个函数用来处理调试串口接收到的简单的调试命令
 static void Com_Debug_Message_Handle1(uint8_t buf)
 {
-//	uint8_t t;
-	switch(buf)
+	static uint8_t cmd = 0;   //用于区分更多的指令
+	uint8_t i;
+	
+	if(cmd == 0)
 	{
-		default:   //cmd打印的时候，可能超出了可显示字符的区间
-			printf("ERROR: Command Unknow cmd = 0x%x!!!\n\r",buf);   //不能识别的命令
-		case '0':
-			printf("%s\n\r",g_build_time_str);  //打印编译的时间
-		break;
-		case '1':
-//			printf("p0v95_vol = %d mv,p1v0_vol  = %d mv, p1v2_vol  = %d mv,p12v_vol = %d mv\n\r",g_p0v95_vol,g_p1v0_vol, g_p1v2_vol,g_p12v_vol);
-			//打印电流值
-		//	printf("g_p0v95_vol = %d mv,g_p1v0_vol  = %d mv, g_p1v2_vol  = %d mv,g_p12v_vol = %d mv\n\r",g_p0v95_vol,g_p1v0_vol, g_p1v2_vol,g_p12v_vol);
+		switch(buf)
+		{
+			default:   //cmd打印的时候，可能超出了可显示字符的区间
+				printf("ERROR: Command Unknow cmd = 0x%x!!!\r\n",buf);   //不能识别的命令
+			case '0':
+				printf("%s\r\n",g_build_time_str);  //打印编译的时间
 			break;
-		case '2':
-			//打印温度值
-//			printf("cpu temp = %d,board temp = %d\n\r",g_cpu_temp>>4,g_board_temp>>4);
-			#ifdef LCD_HEAT_ENABLE		
-			printf("lcd1 temp = %d,lcd2 temp  = %d\n\r",g_lcd_temp[0]>>4,g_lcd_temp[1]>>4);
-			printf("lcd heat %s,fan_pwm = %d\n\r",Get_Lcd_Heat_Status()?"on":"off",g_fan_pwm);
-			#endif
-			break;
-		case '3':
-//			printf("lcd Power %s\n\r",Get_Lcd_Power_Status()?"on":"off");  //lcd加电状态
-//			printf("lcd Pd_n status %s\n\r",Get_Lcd_PdN_Status()?"on":"off");  //lcd ttl转换的状态
-//			printf("lcd light pwm = %d\n\r",g_lcd_pwm);   //lcd的亮度pwm值
-			break;
-		case '4':
-//			t = Get_Di_4Ttl_Status();   //4路开关量输入DI PB12-PB15
-//			printf("4Di Di1 %s,Di2 %s,Di3 %s,Di4 %s \n\r",t&1?"on":"off",t&2?"on":"off",t&4?"on":"off",t&8?"on":"off");
-//			t = Get_Optica_Switch_Status();  //4路光开关状态
-//			printf("4 op switch D2_STATE2 %s ,D2_STATE1 %s,D1_STATE1 %s,D1_STATE2 %s \n\r",
-//								t&1?"on":"off",t&2?"on":"off",t&4?"on":"off",t&8?"on":"off");
-			break;
-		case '5':
-			printf("Watch Dog Status = %s\n\r","off");   //暂时没有开启
-			break;
-		case '6':
-//			printf("Cpu Run Status = %s\n\r",g_Cpu_Run_Status_str[g_cpu_run_status-1]);
-			break;
+			case '1':
+				printf("laser area = 0x%x \r\n",get_laser_area_val());
+				//打印电流值
+				for(i=0;i<7;i++)  //连续打印7个值
+					printf("laser pwm[%d] = %d \r\n",i,g_pwm[i]);
+				break;
+			case '2':
+				//打印温度值
+				printf("temp = %0.2f,humi = %0.2f\r\n",g_temperature,g_humidity);
+				break;
+			case '3':
+				printf("usb charge status %d（0:nc,1:charging,2:full）\r\n",is_power_charge());  //usb加电状态
+				printf("system run status %s \r\n",sys_run_status[get_system_run_status()-1]);  //系统运行的状态
+	//			printf("lcd light pwm = %d\r\n",g_lcd_pwm);   //lcd的亮度pwm值
+				break;
+			case '4':
+	//			t = Get_Di_4Ttl_Status();   //4路开关量输入DI PB12-PB15
+	//			printf("4Di Di1 %s,Di2 %s,Di3 %s,Di4 %s \r\n",t&1?"on":"off",t&2?"on":"off",t&4?"on":"off",t&8?"on":"off");
+	//			t = Get_Optica_Switch_Status();  //4路光开关状态
+	//			printf("4 op switch D2_STATE2 %s ,D2_STATE1 %s,D1_STATE1 %s,D1_STATE2 %s \r\n",
+	//								t&1?"on":"off",t&2?"on":"off",t&4?"on":"off",t&8?"on":"off");
+				break;
+			case '5':
+				printf("Watch Dog Status = %s\r\n","off");   //暂时没有开启
+				break;
+			case '6':
+	//			printf("Cpu Run Status = %s\r\n",g_Cpu_Run_Status_str[g_cpu_run_status-1]);
+				break;
+			case 'a':
+			case 'A':   //设置激光区域增加
+				cmd = 1;	
+				break;
+			case 'b':
+			case 'B':   //设置激光区域减少
+				cmd = 2;
+			case 'c':
+			case 'C':   //设置激光区域pwm变化
+				cmd = 4;	
+				break;
+			case 'd':
+			case 'D':   //设置激光区域pwm减少
+				cmd = 5;
+			case 'm':
+			case 'M':   //wt588d 调整，音乐上一曲下一曲，音量增减
+				cmd = 3;
+				break;
+		}
 	}
+	else if(cmd == 1)  //设置激光区域增加
+	{
+		laser_area_control(buf,1);
+		cmd = 0;   //清除命令模式
+	}
+	else if(cmd == 2)  //设置激光区域减少
+	{
+		laser_area_control(buf,0);
+		cmd = 0;   //清除命令模式
+	}
+	else if(cmd == 3)  //设置音乐 上一首，下一首，音乐增，音乐减
+	{
+		wt588d_control(buf);
+		cmd = 0;   //清除命令模式
+	//	printf("exit wt588d_control mode\r\n");		
+	}
+	else if(cmd == 4)  //设置激光区域增加
+	{
+		laser_pwm_control(buf);
+		cmd = 0;   //清除命令模式
+	}
+	else  //防止其他不可靠的问题
+		cmd = 0;
+//	else if(cmd == 5)   //设置激光区域减少
+//	{
+//		
+//		cmd = 0;   //清除命令模式
+//	}
+//	else if(cmd == 6)
+//	{
+//		
+//		cmd = 0;   //清除命令模式
+//	}
 }
 
 

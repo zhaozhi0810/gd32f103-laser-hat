@@ -13,7 +13,7 @@
 //#define LCD_PWM_HEAT   //LCD使用pwm加热，注释该宏表示不使用pwm
 #define BTNS_USE_INT   //按键扫描使用中断方式
 
-#define LITTLE_ENDIAN
+#define LITTLE_ENDIAN  //sht30.h中需要用到这个宏定义
 
 //允许lcd低温时进行加热处理
 // #define LCD_HEAT_ENABLE    //开启液晶屏加热功能，注释之后就没有加热功能
@@ -60,5 +60,11 @@ typedef enum{
 
 #include "ir_switch.h"   //红外检测
 #include "power_manager.h"    //电源管理部分
+
+#include "spi.h" 
+#include "W25QXX_driver.h"
+
+
+#include "wt588d.h"
 #endif
 

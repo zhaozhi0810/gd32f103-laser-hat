@@ -4,6 +4,9 @@
 
 #include <gd32f10x.h>
 
+extern uint8_t g_pwm[7];   //每一个通道设置不同的pwm值，pwm范围0-100。一般情况是7个区域同时变化。
+
+
 //用于普通的io端口，使用定时器去模拟pwm
 void laser_control_init(void);
 
@@ -31,5 +34,8 @@ void pwm_all_change(uint8_t degree);
 //100HZ的频率，10ms进入一次
 void laser_run_pwm_task(void);
 
+
+//获得激光区域设置
+uint8_t get_laser_area_val(void);
 #endif
 

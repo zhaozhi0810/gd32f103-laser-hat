@@ -27,6 +27,7 @@
 //uint16_t PWM_DEGREE_MAX = 4000;   //PWM频率  1us计个数，4000计算的频率就是1000000/4000=250Hz 太高了影响电磁兼容实验？？？
 uint8_t g_pwm[7] = {0};   //每一个通道设置不同的pwm值，pwm范围0-100。一般情况是7个区域同时变化。
 static uint8_t g_pwm_status = 0;  //0-6位，1表示开启激光，0表示关闭激光
+
 #define PWM_HZ 100   //设置pwm的频率，定时器每10ms进入一次，即为100HZ
 
 static uint8_t laser_area_control = 0x7f;  //表示7个区域全开，可以设置对应的区域 
@@ -187,6 +188,15 @@ void laser_sub_a_area(uint8_t area)
 	if(area < 7)
 		laser_area_control &= ~(1<<area);
 }
+
+
+
+uint8_t get_laser_area_val(void)
+{
+	return laser_area_control;
+}
+
+
 
 
 //100HZ的频率，10ms进入一次

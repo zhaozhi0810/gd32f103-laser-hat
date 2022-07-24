@@ -513,6 +513,26 @@
               <FileType>1</FileType>
               <FilePath>.\src\power_manager.c</FilePath>
             </File>
+            <File>
+              <FileName>spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>w25qxx_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\w25qxx_driver.c</FilePath>
+            </File>
+            <File>
+              <FileName>wt588d.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\wt588d.c</FilePath>
+            </File>
+            <File>
+              <FileName>hm10-bluetooth.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\hm10-bluetooth.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
