@@ -14,7 +14,7 @@
 
 
 static uint32_t spi_index[] = {SPI0,SPI1,SPI2};
-static uint32_t rcu_spi_index[] = {RCU_SPI0,RCU_SPI1,RCU_SPI2};
+static rcu_periph_enum rcu_spi_index[] = {RCU_SPI0,RCU_SPI1,RCU_SPI2};
 
 static uint8_t spi_inited = 0 ; //bit0,bit1,bit2有效，为1表示初始化了，为0表示未初始化
 

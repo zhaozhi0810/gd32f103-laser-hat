@@ -1,6 +1,6 @@
 
 #include "includes.h"
-
+#include <string.h>
 
 /*
 	串口蓝牙  PA2，3
@@ -86,8 +86,8 @@ const uint8_t* bt_cmd[] = {   "AT"        // 1.测试指令
 //发送模块测试指令					
 void get_bt_test_status(void)
 {
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[0], strlen(bt_cmd[0]));
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen(bt_cmd_end));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[0], strlen((const char*)bt_cmd[0]));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen((const char*)bt_cmd_end));
 }	
 
 
@@ -95,48 +95,48 @@ void get_bt_test_status(void)
 //发送模块软件复位					
 void bt_test_reset(void)
 {
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[11], strlen(bt_cmd[11]));
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen(bt_cmd_end));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[11], strlen((const char*)bt_cmd[11]));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen((const char*)bt_cmd_end));
 }	
 
 
 //发送模块查询版本指令					
 void get_bt_test_version(void)
 {
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[1], strlen(bt_cmd[1]));
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen(bt_cmd_end));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[1], strlen((const char*)bt_cmd[1]));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen((const char*)bt_cmd_end));
 }	
 
 
 //发送模块查询地址指令					
 void get_bt_lvaddr(void)
 {
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[2], strlen(bt_cmd[2]));
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen(bt_cmd_end));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[2], strlen((const char*)bt_cmd[2]));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen((const char*)bt_cmd_end));
 }	
 
 //发送模块查询地址指令					
 void get_bt_name(void)
 {
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[3], strlen(bt_cmd[3]));
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen(bt_cmd_end));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[3], strlen((const char*)bt_cmd[3]));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen((const char*)bt_cmd_end));
 }
 
 
 //发送模块查询地址指令					
-void set_bt_name(char* name)
+void set_bt_name(const uint8_t* name)
 {
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[3], strlen(bt_cmd[3]));
-	Uart_Tx_String(TOCPU_COM_NUM, name, strlen(name));
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen(bt_cmd_end));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[3], strlen((const char*)bt_cmd[3]));
+	Uart_Tx_String(TOCPU_COM_NUM, name, strlen((const char*)name));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen((const char*)bt_cmd_end));
 }
 
 
 //发送模块查询地址指令					
 void set_bt_sleep(void)
 {
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[13], strlen(bt_cmd[13]));
-	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen(bt_cmd_end));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd[13], strlen((const char*)bt_cmd[13]));
+	Uart_Tx_String(TOCPU_COM_NUM, bt_cmd_end, strlen((const char*)bt_cmd_end));
 }
 
 

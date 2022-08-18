@@ -93,7 +93,7 @@ void ir_send_high(void)
 //关闭定时器则不再发送38Khz频率，此时接收器的数据为0，输出电平为1
 void ir_send_low(void)
 {
-	timer_disable(PWM_TIMER);   //开启定时器}
+	timer_disable(PWM_TIMER);   //关闭定时器}
 }
 
 
