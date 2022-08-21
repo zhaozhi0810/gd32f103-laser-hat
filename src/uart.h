@@ -51,7 +51,7 @@ typedef struct{
 
 
 #define  DEBUG_PRINTF    //用于输出一些出错信息
-//#define  MY_DEBUG        //用于输出一些调试信息，正常使用时不需要
+#define  MY_DEBUG        //用于输出一些调试信息，正常使用时不需要
 
 #ifdef DEBUG_PRINTF
   #define DBG_PRINTF(fmt, args...)  \
@@ -94,7 +94,7 @@ uint8_t CheckSum_For_Uart(uint8_t *buf, uint8_t len);
 int32_t Uart_Verify_Data_CheckSum(uint8_t *data,uint8_t len);  
 
 //串口发送字符串
-void Uart_Tx_String(uint8_t com_no, uint8_t *str, uint8_t length);
+void Uart_Tx_String(uint8_t com_no,const uint8_t *str, uint8_t length);
 
 
 //串口去使能，针对与cpu连接的串口，调试串口不需要实现

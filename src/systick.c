@@ -141,7 +141,7 @@ void Systick_Int_Update(void)
 	
 	if(get_system_run_status() > DEV_POWEROFF)  //开机之后才需要做的事情
 	{		
-		if(g_localtime % TASK2_TICKS_INTERVAL == 5)
+	//	if(g_localtime % TASK2_TICKS_INTERVAL == 0)
 		{
 			g_task_id |= 2;   //任务2 激光的pwm设置，10ms一次
 		}

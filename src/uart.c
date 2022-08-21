@@ -135,7 +135,7 @@ int fputc(int ch, FILE *f)
 
 //发送一段字符
 //com 表示从哪个端口发出
-void Uart_Tx_String(uint8_t com_no, uint8_t *str, uint8_t length)
+void Uart_Tx_String(uint8_t com_no, const uint8_t *str, uint8_t length)
 {
 	uint8_t i;
 	

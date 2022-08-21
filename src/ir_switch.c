@@ -93,7 +93,7 @@ void ir_send_high(void)
 //关闭定时器则不再发送38Khz频率，此时接收器的数据为0，输出电平为1
 void ir_send_low(void)
 {
-	timer_disable(PWM_TIMER);   //开启定时器}
+	timer_disable(PWM_TIMER);   //关闭定时器}
 }
 
 
@@ -135,11 +135,12 @@ void ir_detect_off(void)
 
 #ifdef IR_DETECT_USE_IRQ
 
-static uint16_t ir_detect_time_out = 5;    //中断接收超时时间
+static volatile uint8_t ir_detect_time_out = 5;    //中断接收超时时间
 
 void ir_irq9_handle(void)
 {
 	ir_detect_time_out = 5;   // 5次就是500ms的时间
+//	printf("ir_irq9_handle\r\n");
 }
 
 
@@ -160,29 +161,35 @@ void ir_irq9_detect_task(void)
 		return ;
 	}
 	
+	ir_detect_time_out = 0;   //debug ，==0 则不检测
 	
 	if(ir_detect_time_out)  //未佩戴的时候，激光关闭
 	{
 		ir_detect_time_out -- ;  //倒计时减少
-		
+		printf("n = %d\r\n",n);
 		//关闭激光照射
 		if(n == 0)
 		{
-			pwm_all_change(0);  //
+		//	pwm_all_change(0);  //
 			DBG_PRINTF("ERROR : ir_irq9_detect_task detect device off ,and poweroff laser\r\n");
 		}
 		n++;
+		
+		if(n%100 == 0)
+			printf("n = %d\r\n",n);
 		
 		if(n > 1200)   //2min = 120秒，1秒进入10次
 		{
 			DBG_PRINTF("ERROR : ir_irq9_detect_task detect device off 2 mins,and system  go to poweroff\r\n");
 			count = 0;   //佩戴时间清零
+			n = 0;
 			system_power_off();   //关机
 		}
 		
 	}
 	else  //没有接收到信号了，表示佩戴了头盔
 	{
+//		printf("ir_irq9_detect_task ir_detect_time_out = 0 else count = %d\r\n",count);
 		 if(n)  //清零计数值
 			 n = 0;
 		 		 
@@ -206,9 +213,9 @@ void ir_irq9_detect_task(void)
 	
 	//k 是用于发送红外的，高低电平的翻转，不断的触发中断
 	k++;
-	if(k == 1)
+	if(k < 2 )
 		ir_send_high();   //发送高电平，100ms
-	else if(k < 5)
+	else if(k < 3)
 		ir_send_low();   //发送低电平，300ms
 	else	
 		k = 0;

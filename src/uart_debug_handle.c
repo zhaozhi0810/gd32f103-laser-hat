@@ -52,7 +52,7 @@ static void laser_pwm_control(uint8_t pwm)
 	uint8_t degree;
 	if(pwm <= '9' && pwm >= '0')
 	{
-		degree = ((pwm - '0')+ 1 )*10;
+		degree = ((pwm - '0')+ 1 );
 		pwm_all_change(degree);
 	}
 	printf("laser_pwm_control  degree = %d \r\n",degree);	
@@ -83,6 +83,47 @@ static void wt588d_control(uint8_t buf)
 
 
 
+static void debug_printf_help(void)
+{
+	printf("debug_help,please use some cmds\r\n");
+	printf("0. print program build time and date\r\n");
+	printf("1. print laser areas pwm value\r\n");
+	printf("2. print hat's temperature value\r\n");
+	printf("3. print usb charge status\r\n");
+	printf("4. nothing\r\n");
+	printf("5. print Watch Dog Status(off,not enable this version)\r\n");
+	printf("6. nothing\r\n");
+	
+	printf("m1. music or speaker control: next one\r\n");
+	printf("m2. music or speaker control: last one\r\n");
+	printf("m3. music or speaker control: vol up \r\n");
+	printf("m4. music or speaker control: vol down\r\n");
+	
+	printf("A0. enable laser area 0\r\n");
+	printf("A1. enable laser area 1\r\n");
+	printf(".....\r\n");
+	printf("A6. enable laser area 6\r\n");
+	
+	printf("B0. disable laser area 0\r\n");
+	printf("B1. disable laser area 1\r\n");
+	printf(".....\r\n");
+	printf("B6. disable laser area 6\r\n");
+	
+	
+	printf("c0. set laser pwm 10%%\r\n");
+	printf("c1. set laser pwm 20%%\r\n");
+	printf("......\r\n");
+	printf("c9. set laser pwm 100%%\r\n");
+	
+	printf("d0. set temp control laser pwm enable\r\n");
+	printf("d1. set temp control laser pwm disable\r\n");
+	
+	printf("other. print this help\r\n");
+}	
+
+
+
+
 const char* sys_run_status[]= {"DEV_BUG" ,     //故障
 	"DEV_VOL_LE30 ",    //电压低于3.0	
 	"DEV_POWEROFF",      //关机
@@ -106,6 +147,7 @@ static void Com_Debug_Message_Handle1(uint8_t buf)
 		{
 			default:   //cmd打印的时候，可能超出了可显示字符的区间
 				printf("ERROR: Command Unknow cmd = 0x%x!!!\r\n",buf);   //不能识别的命令
+				debug_printf_help();
 			case '0':
 				printf("%s\r\n",g_build_time_str);  //打印编译的时间
 			break;
@@ -117,10 +159,10 @@ static void Com_Debug_Message_Handle1(uint8_t buf)
 				break;
 			case '2':
 				//打印温度值
-				printf("temp = %0.2f,humi = %0.2f\r\n",g_temperature,g_humidity);
+				printf("temp = %0.2f\r\n",g_temperature);
 				break;
 			case '3':
-				printf("usb charge status %d（0:nc,1:charging,2:full）\r\n",is_power_charge());  //usb加电状态
+				printf("usb charge status %d(0:no charge,1:charging,2:full)\r\n",is_power_charge());  //usb加电状态
 				printf("system run status %s \r\n",sys_run_status[get_system_run_status()-1]);  //系统运行的状态
 	//			printf("lcd light pwm = %d\r\n",g_lcd_pwm);   //lcd的亮度pwm值
 				break;
@@ -144,13 +186,15 @@ static void Com_Debug_Message_Handle1(uint8_t buf)
 			case 'b':
 			case 'B':   //设置激光区域减少
 				cmd = 2;
+				break;
 			case 'c':
 			case 'C':   //设置激光区域pwm变化
 				cmd = 4;	
 				break;
 			case 'd':
-			case 'D':   //设置激光区域pwm减少
+			case 'D':   //激光区域pwm受温度控制吗？
 				cmd = 5;
+				break;
 			case 'm':
 			case 'M':   //wt588d 调整，音乐上一曲下一曲，音量增减
 				cmd = 3;
@@ -173,18 +217,22 @@ static void Com_Debug_Message_Handle1(uint8_t buf)
 		cmd = 0;   //清除命令模式
 	//	printf("exit wt588d_control mode\r\n");		
 	}
-	else if(cmd == 4)  //设置激光区域增加
+	else if(cmd == 4)  //设置激光pwm的值
 	{
 		laser_pwm_control(buf);
 		cmd = 0;   //清除命令模式
 	}
+
+	else if(cmd == 5)   //设置激光区域减少
+	{
+		if(buf=='0')
+			temp_control_disable();
+		else
+			temp_control_enable();
+		cmd = 0;   //清除命令模式
+	}
 	else  //防止其他不可靠的问题
 		cmd = 0;
-//	else if(cmd == 5)   //设置激光区域减少
-//	{
-//		
-//		cmd = 0;   //清除命令模式
-//	}
 //	else if(cmd == 6)
 //	{
 //		

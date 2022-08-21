@@ -6,6 +6,11 @@
 
 #define IIC_DELAY_CONT 2   //用于延时程序,GD32达到了108M，所以设置为2（待定），默认72M可以设置为0
 
+//！！！！！注意，头盔的iic1 PB7 为SCL  PB6 为SDA 与 IIC硬件控制器相反  （2022-08-21）
+//！！！！！注意，头盔的iic1 PB7 为SCL  PB6 为SDA 与 IIC硬件控制器相反  （2022-08-21）
+//！！！！！注意，头盔的iic1 PB7 为SCL  PB6 为SDA 与 IIC硬件控制器相反  （2022-08-21）
+
+
 
 
 static void Sda_In(iic_index_t index)
@@ -15,7 +20,8 @@ static void Sda_In(iic_index_t index)
 	else if(index == IIC3_INDEX)
 		gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_2MHZ,GPIO_PIN_9);
 	else 
-		gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_2MHZ,GPIO_PIN_7);
+		gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_2MHZ,GPIO_PIN_6);
+	//	gpio_init(GPIOB, GPIO_MODE_IPU, GPIO_OSPEED_2MHZ,GPIO_PIN_7);
 }
 
 
@@ -26,7 +32,8 @@ static void Sda_Out(iic_index_t index)
 	else if(index == IIC3_INDEX)
 		gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ,GPIO_PIN_9);		
 	else 
-		gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ,GPIO_PIN_7);
+		gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ,GPIO_PIN_6);
+	//	gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ,GPIO_PIN_7);
 }
 
 
@@ -50,9 +57,11 @@ static void Iic_Sda_Set(iic_index_t index,uint8_t val)
 	else
 	{
 		if(val)
-			gpio_bit_set(GPIOB, GPIO_PIN_7);
+			gpio_bit_set(GPIOB, GPIO_PIN_6);
+		//	gpio_bit_set(GPIOB, GPIO_PIN_7);
 		else
-			gpio_bit_reset(GPIOB, GPIO_PIN_7);
+			gpio_bit_reset(GPIOB, GPIO_PIN_6);
+		//	gpio_bit_reset(GPIOB, GPIO_PIN_7);
 	}
 }
 
@@ -75,9 +84,11 @@ static void Iic_Scl_Set(iic_index_t index,uint8_t val)
 	else
 	{		
 		if(val)
-			gpio_bit_set(GPIOB, GPIO_PIN_6);
+			gpio_bit_set(GPIOB, GPIO_PIN_7);
+		//	gpio_bit_set(GPIOB, GPIO_PIN_6);
 		else
-			gpio_bit_reset(GPIOB, GPIO_PIN_6);
+			gpio_bit_reset(GPIOB, GPIO_PIN_7);
+		//	gpio_bit_reset(GPIOB, GPIO_PIN_6);
 	}
 }
 
@@ -90,7 +101,8 @@ static uint8_t Read_Sda(iic_index_t index)
 	else if(index == IIC3_INDEX) 
 		return gpio_input_bit_get(GPIOB,GPIO_PIN_9); 
 	else 
-		return gpio_input_bit_get(GPIOB,GPIO_PIN_7);
+		return gpio_input_bit_get(GPIOB,GPIO_PIN_6);
+	//	return gpio_input_bit_get(GPIOB,GPIO_PIN_7);
 }
 
 
@@ -127,10 +139,11 @@ void IIC_Init(iic_index_t index)
 //产生IIC起始信号
 void IIC_Start(iic_index_t index)
 {
-	Sda_Out(index);     //sda线输出
-	Iic_Sda_Set(index,1);	  	  
+//	Iic_Scl_Set(index,0);
+	Iic_Sda_Set(index,1);
+	Sda_Out(index);     //sda线输出	  	  
 	Iic_Scl_Set(index,1);
-	Delay1us(IIC_DELAY_CONT+4);
+	Delay1us(IIC_DELAY_CONT+2);
  	Iic_Sda_Set(index,0);//START:when CLK is high,DATA change form high to low 
 	Delay1us(IIC_DELAY_CONT+4);
 	Iic_Scl_Set(index,0);//钳住I2C总线，准备发送或接收数据 
@@ -149,6 +162,8 @@ void IIC_Stop(iic_index_t index)
 	Iic_Sda_Set(index,1);//发送I2C总线结束信号
 	Delay1us(IIC_DELAY_CONT+4);	
 
+//	printf("IIC_Stop index = %d\r\n",index);
+	
 	//结束之后，sda和scl都输出为高！！
 }
 
@@ -176,9 +191,10 @@ uint8_t IIC_Wait_Ack(iic_index_t index)
 		if(ucErrTime>250)
 		{
 			IIC_Stop(index);
+			printf("ERROR: IIC_Wait_Ack\r\n");
 			return 1;
 		}
-		Delay1us(1);   //延时一下
+		Delay1us(20);   //延时一下
 	}
 	Iic_Scl_Set(index,0);//时钟输出0
 	Delay1us(IIC_DELAY_CONT+1);	
@@ -247,7 +263,7 @@ uint8_t I2c_WriteByte(iic_index_t index,uint8_t txd)
 	if(IIC_Wait_Ack(index))  //如果没有应答，直接退出
 	{
 		//printf("send word addr error!\n");
-		DBG_PRINTF("ERROR: send word_addr IIC_Wait_Ack(index)!= 0 index = %d\n",index);
+		DBG_PRINTF("ERROR: send word_addr IIC_Wait_Ack(index)!= 0 index = %d txd = %#x\r\n",index,txd);
 		IIC_Stop(index); //iic_stop(I2Cx);     //发送停止信号，总线就空闲了
 		return 3;
 	}

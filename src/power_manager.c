@@ -52,11 +52,11 @@ void PowerManager_init(void)
 	
 	//6. 充电状态的引脚初始化
 	//6.1 充电状态读取
-	rcu_periph_clock_enable(RCU_GPIOC);			
+//	rcu_periph_clock_enable(RCU_GPIOC);			
 	gpio_init(GPIOC, GPIO_MODE_IPU, GPIO_OSPEED_2MHZ, GPIO_PIN_6);	  //PC6设置为输入模式
 	
 	//7 升压5v输出使能，时钟使能
-	rcu_periph_clock_enable(RCU_GPIOB);			
+//	rcu_periph_clock_enable(RCU_GPIOB);			
 	gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ, GPIO_PIN_15);	
 	gpio_bit_reset(GPIOB, GPIO_PIN_15);  //5v不输出
 	
@@ -115,14 +115,14 @@ uint8_t get_BT3V_PowerStatus(void)
 //外设电源3.3v升压输出
 void output_BT3V_enable(void)
 {
-	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
+//	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 	gpio_bit_set(GPIOB, GPIO_PIN_13);  //5v输出
 }
 
 //外设电源3.3v输出关闭
 void output_BT3V_disable(void)
 {
-	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
+//	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 	gpio_bit_reset(GPIOB, GPIO_PIN_13);  //5v不输出
 }
 
@@ -130,17 +130,17 @@ void output_BT3V_disable(void)
 //锂电池的5v升压输出
 void output_5v_enable(void)
 {
-	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
+//	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 	gpio_bit_set(GPIOB, GPIO_PIN_15);  //5v输出
-	gpio_bit_reset(GPIOB, GPIO_PIN_14);  //5v mos管 输出
+	gpio_bit_set(GPIOB, GPIO_PIN_14);  //5v mos管 输出
 }
 
 //锂电池的5v升压输出
 void output_5v_disable(void)
 {
-	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
+//	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 	gpio_bit_reset(GPIOB, GPIO_PIN_15 );  //5v不输出
-	gpio_bit_set(GPIOB, GPIO_PIN_14);  //5v mos管 不输出
+	gpio_bit_reset(GPIOB, GPIO_PIN_14);  //5v mos管 不输出
 }
 
 

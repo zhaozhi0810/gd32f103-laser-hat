@@ -22,33 +22,34 @@ void Led_Show_Work_init(void)
 		
 	gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ, GPIO_PIN_0 | GPIO_PIN_1);	
 	//熄灭
-	gpio_bit_reset(GPIOA, GPIO_PIN_8);
+	gpio_bit_reset(GPIOA, GPIO_PIN_1);	
+	gpio_bit_reset(GPIOA, GPIO_PIN_0);   //绿灯
 }
 
 //绿色指示灯点亮
 void GreenLed_Show_Work_On(void)
 {
-	gpio_bit_reset(GPIOA, GPIO_PIN_0);
+	gpio_bit_set(GPIOA, GPIO_PIN_0);
 }
 
 //绿色指示灯熄灭
 void GreenLed_Show_Work_Off(void)
 {
-	gpio_bit_set(GPIOA, GPIO_PIN_0);
+	gpio_bit_reset(GPIOA, GPIO_PIN_0);
 }
 
 
 //红色指示灯点亮
 void OrangeLed_Show_Work_On(void)
 {
-	gpio_bit_reset(GPIOA, GPIO_PIN_1);
+	gpio_bit_set(GPIOA, GPIO_PIN_1);
 }
 
 
 //红色指示灯熄灭
 void OrangeLed_Show_Work_Off(void)
 {
-	gpio_bit_set(GPIOA, GPIO_PIN_1);
+	gpio_bit_reset(GPIOA, GPIO_PIN_1);
 }
 
 
@@ -71,6 +72,7 @@ void Task_Led_Show_Work(void)
 	n++;
 	
 	ret = is_power_charge();
+//	printf("Task_Led_Show_Work ret = %d\r\n",ret);
 	
 	if(ret > 0)   //充电中，或已充满
 	{

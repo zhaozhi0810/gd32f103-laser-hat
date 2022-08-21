@@ -20,7 +20,47 @@
 */
 void ADC_Init(void)
 {
+#if 1
     /*------------------时钟配置------------------*/
+    // GPIO时钟使能
+//    rcu_periph_clock_enable(RCU_GPIOC);
+    // ADC时钟使能
+    rcu_periph_clock_enable(RCU_ADC0);
+    // ADC时钟8分频，最大14MHz
+    rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV12);
+
+    /*------------------ADC GPIO配置------------------*/
+    /* ADC SCAN function enable */
+    adc_special_function_config(ADC0, ADC_SCAN_MODE,ENABLE);  
+    /* ADC trigger config */
+    adc_external_trigger_source_config(ADC0, ADC_INSERTED_CHANNEL, ADC0_1_2_EXTTRIG_INSERTED_NONE);
+    /* ADC data alignment config */
+    adc_data_alignment_config(ADC0, ADC_DATAALIGN_RIGHT);
+    /* ADC mode config */
+    adc_mode_config(ADC_MODE_FREE);  
+    /* ADC channel length config */
+    adc_channel_length_config(ADC0, ADC_INSERTED_CHANNEL, 1);
+
+    /* ADC temperature sensor channel config */
+    adc_inserted_channel_config(ADC0, 0, ADC_CHANNEL_0, ADC_SAMPLETIME_71POINT5);//ADC_SAMPLETIME_239POINT5);
+    /* ADC internal reference voltage channel config */
+    //adc_inserted_channel_config(ADC0, 1, ADC_CHANNEL_17, ADC_SAMPLETIME_239POINT5);
+
+    /* ADC external trigger enable */
+    adc_external_trigger_config(ADC0, ADC_INSERTED_CHANNEL,ENABLE);
+
+    /* ADC temperature and Vrefint enable */
+    adc_tempsensor_vrefint_enable();
+    
+    /* enable ADC interface */
+    adc_enable(ADC0);
+    Delay1ms(1);    
+    /* ADC calibration and reset calibration */
+    adc_calibration_enable(ADC0);
+	
+	adc_software_trigger_enable(ADC0, ADC_INSERTED_CHANNEL);  /* ADC software trigger enable */	
+#else	
+	/*------------------时钟配置------------------*/
     // GPIO时钟使能
     rcu_periph_clock_enable(RCU_GPIOC);
     // ADC时钟使能
@@ -55,6 +95,7 @@ void ADC_Init(void)
     Delay1ms(1);                                                   // 等待1ms
     // 使能ADC校准
     adc_calibration_enable(ADC1);
+#endif	
 }
 
 /**
@@ -64,18 +105,23 @@ void ADC_Init(void)
 */
 uint16_t ADC_Read(uint8_t channel)
 {
+#if 1
+	return ADC_IDATA0(ADC0);
+#else
+	
     uint16_t adcValue = 0;
     
     // 配置ADC通道转换顺序，采样时间为55.5个时钟周期
-    adc_regular_channel_config(ADC1, 0, channel, ADC_SAMPLETIME_55POINT5);
+    adc_regular_channel_config(ADC0, 0, channel, ADC_SAMPLETIME_55POINT5);
     // 由于没有采用外部触发，所以使用软件触发ADC转换
-    adc_software_trigger_enable(ADC1, ADC_REGULAR_CHANNEL);   
+    adc_software_trigger_enable(ADC0, ADC_REGULAR_CHANNEL);   
     
-    while(!adc_flag_get(ADC1, ADC_FLAG_EOC));                       // 等待采样完成
-    adc_flag_clear(ADC1, ADC_FLAG_EOC);                             // 清除结束标志
+    while(!adc_flag_get(ADC0, ADC_FLAG_EOC));                       // 等待采样完成
+    adc_flag_clear(ADC0, ADC_FLAG_EOC);                             // 清除结束标志
     
-    adcValue = adc_regular_data_read(ADC1);                         // 读取ADC数据
+    adcValue = adc_regular_data_read(ADC0);                         // 读取ADC数据
     return adcValue;
+#endif
 }
 
 
@@ -104,8 +150,18 @@ static uint16_t getAdcAverage(uint8_t ch,uint8_t times)
 	电压值的计算 3.3*val /1024 就得到计算出来的电压
 */
 uint16_t ADCgetBatVol(void)
-{	
-	return getAdcAverage(ADC_CHANNEL_0,3)* 66 /1024;   //因为2分压了，所以乘3.3*2,扩大10倍，就不再使用小数
+{
+//    uint32_t adcx;
+    uint16_t result;
+    //float temperature;
+    result = ADC_Read(ADC_CHANNEL_0)* 51 /1024;//(ADC_CHANNEL_16,5);  //读取通道16,5次取平均
+    MY_PRINTF("ADCgetBatVol = %d\r\n",result);
+	//temperature = (1.43 - adcx*3.3/4096) * 1000 / 4.3 + 10;     //25 --> 10
+//    result = temperature;                  //扩大100倍.
+    return result;
+
+	
+//	return getAdcAverage(ADC_CHANNEL_0,3)* 66 /1024;   //因为2分压了，所以乘3.3*2,扩大10倍，就不再使用小数
 }
 
 
@@ -117,12 +173,14 @@ void bat_vol_task(void)
 	
 	if(is_power_charge())//get_system_run_status() == DEV_CHARGE)  //充电时不检测电压
 	{
-		return;
+		printf("power_charge\r\n");
+		system_power_off();
+	//	return;
 	}
 	
 	
 	vol = ADCgetBatVol();   //获得电压值
-	MY_PRINTF("%s %d vol = %d\r\n",__FUNCTION__,__LINE__,vol);
+//	MY_PRINTF("%s %d vol = %d\r\n",__FUNCTION__,__LINE__,vol);
 	if(vol > 36)   //电压放大了10倍  3.6伏
 	{
 		MY_PRINTF("%s %d vol>36\r\n",__FUNCTION__,__LINE__);
@@ -136,7 +194,8 @@ void bat_vol_task(void)
 	else //3.0v以下了
 	{
 		MY_PRINTF("%s %d vol <=3.0\r\n",__FUNCTION__,__LINE__);
-		set_system_run_status(DEV_VOL_LE30);
+		system_power_off();
+	//	set_system_run_status(DEV_VOL_LE30);
 	}
 	
 }

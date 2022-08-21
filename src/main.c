@@ -57,19 +57,21 @@ static void BoardInit(void)
 	//3.只保留sw接口，其他用于GPIO端口
 	gpio_pin_remap_config(GPIO_SWJ_SWDPENABLE_REMAP, ENABLE);
 	
-	//4.串口初始化
+	
+	//4.systick 初始化
+	SystickConfig();
+	
+	//5.串口初始化
 	//#define DEBUG_COM_NUM 0   //调试串口号
 	//#define TOCPU_COM_NUM 1   //与cpu通信的串口
 	gd_eval_com_init(DEBUG_COM_NUM,115200);  //用于调试
-	gd_eval_com_init(TOCPU_COM_NUM,9600);  //用于与蓝牙模块通信
+//	gd_eval_com_init(TOCPU_COM_NUM,9600);  //用于与蓝牙模块通信
 	
-	//5.systick 初始化
-	SystickConfig();
 	
 	//6. sht30温度传感器,使用8位地址！！！
-	SHT3X_Init(0x44<<1); // Address: 0x44 = Sensor on EvalBoard connector   pin2 接地
+//	SHT3X_Init(0x44<<1); // Address: 0x44 = Sensor on EvalBoard connector   pin2 接地
                     //          0x45 = Sensor on EvalBoard  pin2 接vcc
-	
+	SHT30_Init();
 	//7. 激光控制初始化 pwm.c
 	laser_control_init();
 	
@@ -90,11 +92,11 @@ static void BoardInit(void)
 	ir_detect_init();   //接收端初始化
 	
 	//12. 音乐播放器
-	wt588d_init();
+//	wt588d_init();
 	
 	
 	//13. w25q64初始化
-	w25qxx_spi_init();
+//	w25qxx_spi_init();
 	
 	
 //	error = SHT3x_ReadSerialNumber(&serialNumber); 

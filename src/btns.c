@@ -26,8 +26,8 @@ void gd_all_keys_init(void)
 	//1. 时钟使能
 	rcu_periph_clock_enable(RCU_GPIOA);
 		
-	//2. 设置为输入模式	
-	gpio_init(GPIOA, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_2MHZ, GPIO_PIN_15);
+	//2. 设置为输入模式	 按下是高电平，松开是低电平
+	gpio_init(GPIOA, GPIO_MODE_IPD, GPIO_OSPEED_2MHZ, GPIO_PIN_15);
 
 	
 	// 清中断标志
@@ -67,7 +67,7 @@ void gd_all_keys_init(void)
 static uint16_t gd_all_keys_state_get(void)
 {
 	//printf("val = %#x\n\r",val);
-	return !gpio_input_bit_get(GPIOA,GPIO_PIN_15);    //因为按下是低电平，松开是高电平，取一下反
+	return gpio_input_bit_get(GPIOA,GPIO_PIN_15);    //因为按下是高电平，松开是低电平
 }
 
 
@@ -91,7 +91,12 @@ void btns_scan(void) // 10ms 调用一次
 
 	status = get_system_run_status();
 	
-	
+	if(is_power_charge())
+	{
+		if(pressCnt)
+			pressCnt = 0;
+		return;	
+	}
 	if(gd_all_keys_state_get()==  SET)  //被按下
 	{
 		if(pressCnt<=300) //之前是松开的

@@ -58,6 +58,7 @@ static uint16_t SHT3X_CalcRawHumidity(float humidity);
 //----------------------------------------------------------------------------- 
 void SHT3X_Init(uint8_t i2cAddress)          /* -- adapt the init for your uC -- */ 
 { 
+	etError error; // error code 
 	IicApp_Init(IIC1_INDEX);
 	_iic_index = IIC1_INDEX;
   // init I/O-pins 
@@ -77,6 +78,12 @@ void SHT3X_Init(uint8_t i2cAddress)          /* -- adapt the init for your uC --
 //   
 //  // release reset 
 //  RESET_HIGH(); 
+	
+	
+	error = SHT3X_StartPeriodicMeasurment(REPEATAB_HIGH, FREQUENCY_1HZ);
+	if(error != NO_ERROR) 
+		printf("ERROR: SHT3X_Init SHT3X_StartPeriodicMeasurment\r\n");
+	
 } 
  
 //----------------------------------------------------------------------------- 
@@ -319,8 +326,12 @@ etError SHT3X_StartPeriodicMeasurment(etRepeatability repeatability,
 { 
   etError error;        // error code 
    
-  error = SHT3X_StartWriteAccess(); 
-   
+	error = SHT3X_StartWriteAccess(); 
+	if(error)
+	{
+		printf("ERROR: SHT3X_StartPeriodicMeasurment SHT3X_StartWriteAccess\r\n");
+		return PARM_ERROR;
+	}
   // if no error, start periodic measurement  
   if(error == NO_ERROR) 
   { 
@@ -413,28 +424,55 @@ etError SHT3X_StartPeriodicMeasurment(etRepeatability repeatability,
 //----------------------------------------------------------------------------- 
 etError SHT3X_ReadMeasurementBuffer(float* temperature, float* humidity) 
 { 
-  etError  error;        // error code 
-  uint16_t     rawValueTemp; // temperature raw value from sensor 
-  uint16_t     rawValueHumi; // humidity raw value from sensor 
- 
-  error = SHT3X_StartWriteAccess(); 
- 
-  // if no error, read measurements 
-  if(error == NO_ERROR) error = SHT3X_WriteCommand(CMD_FETCH_DATA); 
-  if(error == NO_ERROR) error = SHT3X_StartReadAccess();   
-  if(error == NO_ERROR) error = SHT3X_Read2BytesAndCrc(&rawValueTemp, ACK, 0); 
-  if(error == NO_ERROR) error = SHT3X_Read2BytesAndCrc(&rawValueHumi, NACK, 0); 
- 
-  // if no error, calculate temperature in °„C and humidity in %RH 
-  if(error == NO_ERROR) 
-  { 
-    *temperature = SHT3X_CalcTemperature(rawValueTemp); 
-    *humidity = SHT3X_CalcHumidity(rawValueHumi); 
-  } 
- 
-  SHT3X_StopAccess(); 
- 
-  return error; 
+	etError  error;        // error code 
+	uint16_t     rawValueTemp; // temperature raw value from sensor 
+	uint16_t     rawValueHumi; // humidity raw value from sensor 
+
+	error = SHT3X_StartWriteAccess(); 
+	if(error)
+	{
+		printf("ERROR: SHT3X_StartWriteAccess\r\n");
+		return error;
+	}
+	// if no error, read measurements 
+	if(error == NO_ERROR) 
+		error = SHT3X_WriteCommand(CMD_FETCH_DATA); 
+	if(error)
+	{
+		printf("ERROR: SHT3X_WriteCommand\r\n");
+		return error;
+	}
+	if(error == NO_ERROR) 
+		error = SHT3X_StartReadAccess();   
+	if(error)
+	{
+		printf("ERROR: SHT3X_StartReadAccess\r\n");
+		return error;
+	}
+	if(error == NO_ERROR) 
+		error = SHT3X_Read2BytesAndCrc(&rawValueTemp, ACK, 0); 
+	if(error)
+	{
+		printf("ERROR: SHT3X_Read2BytesAndCrc\r\n");
+		return error;
+	} 
+	if(error == NO_ERROR) 
+		error = SHT3X_Read2BytesAndCrc(&rawValueHumi, NACK, 0); 
+	if(error)
+	{
+		printf("ERROR: SHT3X_Read2BytesAndCrc\r\n");
+		return error;
+	} 
+	// if no error, calculate temperature in °„C and humidity in %RH 
+	if(error == NO_ERROR) 
+	{ 
+	*temperature = SHT3X_CalcTemperature(rawValueTemp); 
+	*humidity = SHT3X_CalcHumidity(rawValueHumi); 
+	} 
+
+	SHT3X_StopAccess(); 
+
+	return error; 
 } 
  
 //----------------------------------------------------------------------------- 
@@ -654,29 +692,37 @@ static etError SHT3X_ReadAlertLimitData(float* humidity, float* temperature)
 //----------------------------------------------------------------------------- 
 static etError SHT3X_StartWriteAccess(void) 
 { 
-//  etError error; // error code 
+	etError error; // error code 
  
   // write a start condition 
-  IIC_Start(_iic_index); 
+	IIC_Start(_iic_index); 
  
   // write the sensor I2C address with the write flag 
-  IIC_Send_Byte(_iic_index,_i2cAddress); //I2c_WriteByte(_i2cAddress << 1); 
- 
-  return NO_ERROR; 
+//  IIC_Send_Byte(_iic_index,_i2cAddress); //I2c_WriteByte(_i2cAddress << 1); 
+ //	error = IIC_Wait_Ack(_iic_index);
+	
+	error = I2c_WriteByte(_iic_index,_i2cAddress);
+	
+  return error; 
 } 
  
 //----------------------------------------------------------------------------- 
 static etError SHT3X_StartReadAccess(void) 
 { 
-//  etError error; // error code 
+	etError error; // error code 
  
   // write a start condition 
-  IIC_Start(_iic_index);  //I2c_StartCondition(); 
+	IIC_Start(_iic_index);  //I2c_StartCondition(); 
  
   // write the sensor I2C address with the read flag 
-  IIC_Send_Byte(_iic_index,_i2cAddress | 0x01); //error = I2c_WriteByte(_i2cAddress << 1 | 0x01); 
+//	IIC_Send_Byte(_iic_index,_i2cAddress | 0x01); //error = I2c_WriteByte(_i2cAddress << 1 | 0x01); 
  
-  return NO_ERROR; 
+	
+//	error = IIC_Wait_Ack(_iic_index);
+	
+	error = I2c_WriteByte(_iic_index,_i2cAddress | 0x01);
+	
+  return NO_ERROR;//error;  //
 } 
  
 //----------------------------------------------------------------------------- 
@@ -694,9 +740,20 @@ static etError SHT3X_WriteCommand(etCommands command)
 
 	// write the upper 8 bits of the command to the sensor 
 	error  = (etError)I2c_WriteByte(_iic_index , command >> 8); 
+	if(error)
+	{
+		printf("ERROR: SHT3X_WriteCommand1 cmd = %#x\r\n",command);
+		return PARM_ERROR;
+	}	
 	//error  = IIC_Send_Byte( _iic_index , command >> 8);
 	// write the lower 8 bits of the command to the sensor 
 	error |= (etError)I2c_WriteByte(_iic_index , command & 0xFF); 
+	if(error)
+	{
+		printf("ERROR: SHT3X_WriteCommand2 cmd = %#x\r\n",command);
+		return PARM_ERROR;
+	}
+	
 
 	return error; 
 } 
@@ -720,6 +777,9 @@ static etError SHT3X_Read2BytesAndCrc(uint16_t* data, etI2cAck finaleAckNack,
 	checksum = IIC_Read_Byte(_iic_index,0);   //0 ±Ì æ noack
 	// verify checksum 
 //	if(error == NO_ERROR) 
+	
+	printf("debug : bytes[0] = 0x%x,[1] = 0x%x,csum = 0x%x\r\n",bytes[0],bytes[1],checksum);
+	
 	error = SHT3X_CheckCrc(bytes, 2, checksum); 
 
 	// combine the two bytes to a 16-bit value 
@@ -862,7 +922,7 @@ void get_sht30_tmp_task(void)
 	}
 	else
 	{
-		DBG_PRINTF("ERROR:SHT3X_ReadMeasurementBuffer\n");
+		DBG_PRINTF("ERROR:SHT3X_ReadMeasurementBuffer\r\n");
 	}
 }
 

@@ -14,7 +14,7 @@
 #define TASK_MAX 16   //目前最大的任务数
 
 #define TASK1_TICKS_INTERVAL 10   //任务1，上电按钮扫描 10ms。
-#define TASK2_TICKS_INTERVAL 10   //任务2 激光的pwm设置，10ms一次
+#define TASK2_TICKS_INTERVAL 1   //任务2 激光的pwm设置，10ms一次
 //#define TASK3_TICKS_INTERVAL 10   //任务3，空
 #define TASK4_TICKS_INTERVAL 1000   //任务4，温湿度读取任务，1000ms调用一次
 #define TASK5_TICKS_INTERVAL 50   //任务5，系统状态灯控制，50ms一次

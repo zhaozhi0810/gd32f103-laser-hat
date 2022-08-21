@@ -28,7 +28,7 @@
 uint8_t g_pwm[7] = {0};   //每一个通道设置不同的pwm值，pwm范围0-100。一般情况是7个区域同时变化。
 static uint8_t g_pwm_status = 0;  //0-6位，1表示开启激光，0表示关闭激光
 
-#define PWM_HZ 100   //设置pwm的频率，定时器每10ms进入一次，即为100HZ
+#define PWM_HZ 10   //设置pwm的频率，定时器每10ms进入一次，即为100HZ
 
 static uint8_t laser_area_control = 0x7f;  //表示7个区域全开，可以设置对应的区域 
 
@@ -36,7 +36,7 @@ static uint8_t laser_area_control = 0x7f;  //表示7个区域全开，可以设置对应的区域
 //用于普通的io端口，使用定时器去模拟pwm
 void laser_control_init(void)
 {
-			//时钟使能
+	//时钟使能
 	rcu_periph_clock_enable(RCU_GPIOA);	
 	rcu_periph_clock_enable(RCU_GPIOB);	
 	rcu_periph_clock_enable(RCU_GPIOC);	
@@ -52,6 +52,8 @@ void laser_control_init(void)
 	gpio_bit_reset(GPIOB, GPIO_PIN_3 | GPIO_PIN_4 |GPIO_PIN_5);
 	gpio_bit_reset(GPIOC, GPIO_PIN_12 | GPIO_PIN_10 |GPIO_PIN_11);
 	gpio_bit_reset(GPIOD, GPIO_PIN_2);
+	
+	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 }
 
 void laser_disable(void);
@@ -62,21 +64,21 @@ void laser_enable(unsigned char area)
 	if(!area)
 	{
 		laser_disable();
-		MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
+//		MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 		return;
 	}
 	
 	if(get_system_run_status() == DEV_POWEROFF)
 	{
 		laser_disable();
-		MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
+//		MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 		return;
 	}
 	
 	//开启5v外设电源供电
 	output_5v_enable();
 	
-	MY_PRINTF("%s %d area = %d\r\n",__FUNCTION__,__LINE__,area);
+//	MY_PRINTF("%s %d area = %d\r\n",__FUNCTION__,__LINE__,area);
 //	gpio_bit_set(GPIOA, GPIO_PIN_12);  //PWM_M
 	if(area & 1)
 		gpio_bit_set(GPIOB, GPIO_PIN_4);
@@ -130,7 +132,7 @@ static void laser_disable(void)
 	gpio_bit_reset(GPIOC, GPIO_PIN_12 | GPIO_PIN_10 |GPIO_PIN_11);
 	gpio_bit_reset(GPIOD, GPIO_PIN_2);
 	
-	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
+//	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 }
 
 
@@ -158,7 +160,7 @@ void pwm_out(uint8_t ch,uint8_t degree)
 
 /*
 全部通道设置为某一个值
-//degree 为需要调整的值，0-100
+//degree 为需要调整的值，0-10
 */
 void pwm_all_change(uint8_t degree)
 {
@@ -171,7 +173,7 @@ void pwm_all_change(uint8_t degree)
 		g_pwm[i] = degree; 					
 	}
 	
-	MY_PRINTF("%s %d degree = %d\r\n",__FUNCTION__,__LINE__,degree);
+//	MY_PRINTF("%s %d degree = %d\r\n",__FUNCTION__,__LINE__,degree);
 }
 
 

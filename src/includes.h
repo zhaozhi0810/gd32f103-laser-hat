@@ -51,7 +51,7 @@ typedef enum{
 
 
 #include "pwm.h" 
-#include "sht30.h"
+//#include "sht30.h"
 #include "btns.h"
 #include "dev_run_status.h"    //设备运行状态控制
 
@@ -66,5 +66,10 @@ typedef enum{
 
 
 #include "wt588d.h"
+
+#include "my_sht30_1.h"
+
+
+//#include "remote.h"  //红外发射接收部分
 #endif
 
