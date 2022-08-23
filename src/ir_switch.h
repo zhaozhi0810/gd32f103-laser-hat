@@ -3,7 +3,7 @@
 #define __IR_SWITCH_H__
 
 #define IR_DETECT_USE_IRQ   //红外检测使用中断方式
-
+#include <gd32f10x.h>
 
 void ir_pwm_init(void);
 
@@ -25,6 +25,11 @@ void ir_irq9_detect_task(void);
 
 //关闭irq检测，关机时就不需要了。
 void ir_detect_off(void);
+
+
+// NEC编码发送
+void IR_NEC_Send_Code(const uint8_t *Dat, uint8_t Len);
+
 #endif
 
 

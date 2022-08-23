@@ -88,8 +88,9 @@ static void BoardInit(void)
 	ADC_Init();
 	
 	//11. 红外检测开关发送端初始化
-	ir_pwm_init();
-	ir_detect_init();   //接收端初始化
+	IR_Recv_Init();  //接收初始化
+	ir_pwm_init();   //发送初始化
+//	ir_detect_init();   //接收端初始化
 	
 	//12. 音乐播放器
 //	wt588d_init();

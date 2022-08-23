@@ -69,7 +69,7 @@ typedef enum{
 
 #include "my_sht30_1.h"
 
-
-//#include "remote.h"  //红外发射接收部分
+#include "ir_remote_recv.h"  //红外发射接收部分
+//#include "remote.h"  //红外发射接收部分(不再使用)
 #endif
 

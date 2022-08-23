@@ -62,7 +62,7 @@ void system_power_on(void)
 	set_system_run_status(DEV_RUN_NORMAL);
 	
 	// 3. 红外检测开关开始工作
-	ir_detect_init();   //红外检测初始化
+//	ir_detect_init();   //红外检测初始化
 	
 	
 	// 4. 外设3.3v电源开启
@@ -79,7 +79,7 @@ void system_power_off(void)
 	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 	set_system_run_status(DEV_POWEROFF);  //系统状态修改为关机
 	laser_enable(0);   //激光全部关闭，5v的电源被关闭  包括output_5v_disable(void)
-	ir_detect_off();   //红外检测关闭
+//	ir_detect_off();   //红外检测关闭
 	
 	//4. 外设3.3v电源关闭
 	output_BT3V_disable();

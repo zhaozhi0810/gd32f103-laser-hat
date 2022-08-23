@@ -210,17 +210,16 @@ void EXTI4_IRQHandler(void)
 
 void EXTI5_9_IRQHandler(void)
 {
-
 	if(exti_interrupt_flag_get(EXTI_9))
-	{
-		exti_interrupt_flag_clear(EXTI_9);  //清冲断标志
+	{		
 #ifdef IR_DETECT_USE_IRQ
 		ir_irq9_handle();
 #endif		
+		exti_interrupt_flag_clear(EXTI_9);  //清冲断标志
 	}
-	else if(exti_interrupt_flag_get(EXTI_15))  //用于按键唤醒cpu，啥也不干
+	else if(exti_interrupt_flag_get(EXTI_5))  //用于按键唤醒cpu，啥也不干
 	{
-		exti_interrupt_flag_clear(EXTI_15);  //清冲断标志
+		exti_interrupt_flag_clear(EXTI_5);  //清冲断标志
 	//	exint456_handle();
 	}
 }
