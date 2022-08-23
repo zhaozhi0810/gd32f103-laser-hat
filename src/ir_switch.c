@@ -2,6 +2,9 @@
 
 #include "includes.h"
 
+//红外发送控制部分
+
+
 /*
 	PC9  ir_out 红外接收段   timer2ch2 全映射  TIMER7_CH3
 	PC8  红外发射管  		timer2ch3 全映射  TIMER7_CH2
@@ -18,7 +21,8 @@
 	2022-08-23 已经在示波器上看到信号了，使用的是timer2（因为那个没有timer7）.
 	
 */
-
+//nec ir发送的数据是4个字节（32bits）地址，地址反码，数据，数据反码（所有都是低位先发）
+const uint8_t ir_Send_DAT[5] = {0X10, 0X68, 0X80, 0X03, 0X0};  //ir发送的数据
 
 #define TIMER2_FULL_MAP   // 有些32没得timer7，这需要注意
 
@@ -167,7 +171,7 @@ void IR_NEC_Send_End(void)
 
 
 // NEC编码发送
-static void IR_NEC_Send_Code(const uint8_t *Dat, uint8_t Len)
+void IR_NEC_Send_Code(const uint8_t *Dat, uint8_t Len)
 {
     uint8_t zj;
 	uint8_t j;
@@ -193,12 +197,11 @@ static void IR_NEC_Send_Code(const uint8_t *Dat, uint8_t Len)
 }
 
 
-//nec ir发送的数据是4个字节（32bits）地址，地址反码，数据，数据反码（所有都是低位先发）
-const static uint8_t DAT[5] = {0X10, 0X68, 0X80, 0X03, 0X0};  //ir发送的数据
+
 
 void ir_send_code(void)
 {	
-	IR_NEC_Send_Code(DAT, 4);
+//	IR_NEC_Send_Code(ir_Send_DAT, 4);
 }
 
 

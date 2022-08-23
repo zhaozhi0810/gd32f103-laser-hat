@@ -534,11 +534,6 @@
               <FilePath>.\src\my_sht30_1.c</FilePath>
             </File>
             <File>
-              <FileName>remote_1.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\remote_1.c</FilePath>
-            </File>
-            <File>
               <FileName>ir_remote_recv.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\ir_remote_recv.c</FilePath>

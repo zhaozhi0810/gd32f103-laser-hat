@@ -343,10 +343,99 @@ void ir_irq9_handle(void)
 //}
 
 
-// 100ms 进入1次
+
+static uint8_t check_ir_recv_data(void)
+{
+	uint8_t data[4];
+	
+	
+	if(ir_recv_data == 0)
+		return 0;
+		
+	data[0] =  (ir_recv_data & 0xFF000000) >> 24;
+	data[1] = (ir_recv_data & 0x00FF0000) >> 16;
+	data[2] =  (ir_recv_data & 0x0000FF00) >> 8;
+	data[3] = (ir_recv_data & 0x000000FF);
+	
+	ir_recv_data = 0; //接收数据清零
+	
+	if(ir_Send_DAT[0] == data[0] &&
+		ir_Send_DAT[1] == data[1] &&
+		ir_Send_DAT[2] == data[2] &&
+		ir_Send_DAT[3] == data[3])
+		return 1;   //发送的和接收的数据相同，返回1
+	else
+	{
+		printf("ERROR:recv data[0] = %#x,data[1] = %#x,data[2] = %#x,data[3] = %#x\r\n",data[0],data[1],data[2],data[3]);
+	}
+	return 0;
+}
+
+
+
+// 500ms 进入1次
 //系统开机才检测，不开机就不用检测了！！！
 // 红外发送也是在这的。
 void ir_irq9_detect_task(void)
 {
+	static uint8_t cn = 0;
+	static uint16_t n = 0;   //未佩戴时间计时
+	static uint16_t count = 0; //用于计时佩戴的时间
+//	static uint16_t k = 0;
+	
+	
+	if (get_system_run_status() <= DEV_POWEROFF)  //关机模式下不发送和检测
+	{
+		return;
+	}
+	
+	if(cn++%2 == 0)
+	{
+		IR_NEC_Send_Code(ir_Send_DAT, 4);
+	}
+	else
+	{
+		if(check_ir_recv_data())  //收到红外信号了
+		{
+				//关闭激光照射
+			if(n == 0)
+			{
+			//	pwm_all_change(0);  //
+				DBG_PRINTF("ERROR : ir_irq9_detect_task detect device off ,and will poweroff laser\r\n");
+			}
+			n++;
+			
+			if(n%100 == 0)
+				printf("detect device off ,n = %d\r\n",n);
+			
+			if(n > 1200)   //2min = 120秒，1秒进入10次
+			{
+				DBG_PRINTF("ERROR : ir_irq9_detect_task detect device off 2 mins,and system  go to poweroff\r\n");
+				count = 0;   //佩戴时间清零
+				n = 0;
+				system_power_off();   //关机
+			}
+		}
+		else  //没有收到红外信号
+		{
+			 if(n)  //清零计数值
+				 n = 0;
+					 
+			 //开启激光
+			 if(count == 0)   //第一次进来的时候，开启全部激光
+			 {
+				 pwm_all_change(100);
+				 DBG_PRINTF("ir_irq9_detect_task detect someone ,and poweron laser\r\n");
+			 }
+			 //判断时间是否到了最长时间限制
+			  count ++;   //佩戴时间计时开始
+			 if(count > (60*28*10))   //49200 小于65535
+			 {
+				 DBG_PRINTF("ir_irq9_detect_task task is run 28 mins,and system poweroff\r\n");
+				 system_power_off();   //时间到关机
+				 count = 0;				 
+			 }
+		}
+	}
 }
 

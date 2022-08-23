@@ -94,22 +94,10 @@ static void BoardInit(void)
 	
 	//12. “Ù¿÷≤•∑≈∆˜
 //	wt588d_init();
-	
-	
+		
 	//13. w25q64≥ı ºªØ
 //	w25qxx_spi_init();
-	
-	
-//	error = SHT3x_ReadSerialNumber(&serialNumber); 
-//	if(error != NO_ERROR){} // do error handling here 
-//	   
-//	  // demonstrate a single shot measurement with clock-stretching 
-//	error = SHT3X_GetTempAndHumi(&temperature, &humidity, REPEATAB_HIGH, MODE_CLKSTRETCH, 50); 
-//	if(error != NO_ERROR){} // do error handling here  
-//	   
-//	  // demonstrate a single shot measurement with polling and 50ms timeout 
-//	error = SHT3X_GetTempAndHumi(&temperature, &humidity, REPEATAB_HIGH, MODE_POLLING, 50); 
-//	if(error != NO_ERROR){} // do error handling here
+
 }
 
 
