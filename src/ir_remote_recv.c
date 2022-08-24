@@ -97,7 +97,9 @@ static bool ir_nec_check_tolerance(unsigned int received, ir_nec_state current_s
 static void ir_nec_state_machine(unsigned int time) {
 //	BitAction bit = 1 - GPIO_ReadInputDataBit(gpio, pin); // Invert received value
 //	GPIO_WriteBit(GPIOC, GPIO_Pin_8, bit);
-
+	static uint8_t cnt = 0;
+//	printf("timer = %d\r\n",time);
+	
 	if (!ir_nec_check_tolerance(time, ir_nec_current_state)) {
 		ir_nec_reset_transmission();
 		return;
@@ -106,17 +108,23 @@ static void ir_nec_state_machine(unsigned int time) {
 	switch (ir_nec_current_state) {
 		case IR_NEC_NONE:
 			ir_nec_current_state = IR_NEC_FIRST_BURST;
+			cnt = 0;
+//			printf("0\r\n");
 			break;
 		case IR_NEC_FIRST_BURST:
 			ir_nec_current_state = IR_NEC_SECOND_BURST;
+//			printf("1\r\n");
 			break;
 		case IR_NEC_SECOND_BURST:
 			ir_nec_current_state = IR_NEC_1;
+//			printf("2\r\n");
 			break;
 		case IR_NEC_1:
 			ir_nec_current_state = IR_NEC_NDEF; // we can receive either 0 or 1
+//			printf("3\r\n");
 			break;
 		case IR_NEC_NDEF:
+//			printf("4\r\n");
 			ir_nec_current_state = IR_NEC_1;
 			ir_recv_data >>= 1;   //最开始发送的是最低位
 			//data = data << 1;
@@ -127,10 +135,16 @@ static void ir_nec_state_machine(unsigned int time) {
 //			else {
 //				data = data << 1 | 0;
 //			}
-
-//			if (cnt++ == 32) { //all data received
-//
+			++cnt;
+//			if (cnt > 30)
+//			{
+//				printf("cnt = %d data = %#x\r\n",cnt,ir_recv_data);
 //			}
+			if (cnt >= 32) { //all data received
+				printf("cnt = %d data = %#x\r\n",cnt,ir_recv_data);
+				cnt = 0;
+				ir_recv_prev_data = ir_recv_data;
+			}
 			break;
 		case IR_NEC_SECOND_BURST_REPEAT:
 			// repeat last message
@@ -211,20 +225,20 @@ static void ir_detect_pin_init(void)
 
 //}
 
-//只是用于计时，就不使用定时器7了！！！！就使用tim4了，避开TIMER4
-static void TIM4_IR_RECIVER_Init(uint16_t arr,uint16_t psc)
+//只是用于计时，就不使用定时器7了！！！！就使用tim3了，避开TIMER2
+static void TIM3_IR_RECIVER_Init(uint16_t arr,uint16_t psc)
 {
 //	timer_ic_parameter_struct icpara;
 	timer_parameter_struct initpara;
 	//接收部分
-	rcu_periph_clock_enable(RCU_TIMER4);  //定时器模块时钟使能
+	rcu_periph_clock_enable(RCU_TIMER3);  //定时器模块时钟使能
 
 	//3. 初始化定时器的数据结构  /* initialize TIMER init parameter struct */
 	timer_struct_para_init(&initpara);
-	initpara.period = arr-1;  //重载的数字，
-	initpara.prescaler = psc-1;  //预分频数，得到是1Mhz的脉
+	initpara.period = arr;  //重载的数字，
+	initpara.prescaler = psc;  //预分频数，得到是1Mhz的脉
 	//4. 初始化定时器      /* initialize TIMER counter */
-	timer_init(TIMER4, &initpara);
+	timer_init(TIMER3, &initpara);
 
 	//5.输入捕获初始化
 //	timer_channel_input_struct_para_init(&icpara);
@@ -233,11 +247,11 @@ static void TIM4_IR_RECIVER_Init(uint16_t arr,uint16_t psc)
 
 //	nvic_irq_enable(TIMER7_Channel_IRQn, 1U, 1U);
 //	timer_interrupt_enable(TIMER7, TIMER_INT_CH3);
-	nvic_irq_enable(TIMER4_IRQn, 1U, 1U);
-	timer_interrupt_enable(TIMER4, TIMER_INT_UP);
+	nvic_irq_enable(TIMER3_IRQn, 1U, 1U);
+	timer_interrupt_enable(TIMER3, TIMER_INT_UP);
 
 	//启动定时器2
-	timer_enable(TIMER4);
+	timer_enable(TIMER3);
 }
 
 
@@ -246,7 +260,7 @@ void IR_Recv_Init(void)
 {
 	ir_detect_pin_init();   //引脚初始化
 	ir_nec_init();    //nec数据结构初始化
-	TIM4_IR_RECIVER_Init(10000,(SystemCoreClock/1000000)-1);   //10ms超时   1MHz == 1us
+	TIM3_IR_RECIVER_Init(10000-1,(SystemCoreClock/1000000)-1);   //10ms超时   1MHz == 1us
 }
 
 
@@ -293,13 +307,13 @@ void IR_Recv_Init(void)
 
 
 //定时器4的中断处理，目前是用于红外接收计时
-void TIMER4_IRQHandler(void)
+void TIMER3_IRQHandler(void)
 {
-	if(timer_interrupt_flag_get(TIMER4,TIMER_INT_FLAG_UP)!=RESET)
+	if(timer_interrupt_flag_get(TIMER3,TIMER_INT_FLAG_UP)!=RESET)
 	{
 		ir_nec_reset_transmission();    //定时器超时复位接收
 	}
-	timer_interrupt_flag_clear(TIMER4,TIMER_INT_FLAG_UP);	
+	timer_interrupt_flag_clear(TIMER3,TIMER_INT_FLAG_UP);	
 }
 
 
@@ -344,25 +358,26 @@ void ir_irq9_handle(void)
 
 
 
+
 static uint8_t check_ir_recv_data(void)
 {
 	uint8_t data[4];
 	
 	
-	if(ir_recv_data == 0)
+	if(ir_recv_prev_data == 0)
 		return 0;
 		
-	data[0] =  (ir_recv_data & 0xFF000000) >> 24;
-	data[1] = (ir_recv_data & 0x00FF0000) >> 16;
-	data[2] =  (ir_recv_data & 0x0000FF00) >> 8;
-	data[3] = (ir_recv_data & 0x000000FF);
+	data[3] =  (ir_recv_prev_data & 0xFF000000) >> 24;
+	data[2] = (ir_recv_prev_data & 0x00FF0000) >> 16;
+	data[1] =  (ir_recv_prev_data & 0x0000FF00) >> 8;
+	data[0] = (ir_recv_prev_data & 0x000000FF);
 	
-	ir_recv_data = 0; //接收数据清零
+	ir_recv_prev_data = 0; //接收数据清零
 	
-	if(ir_Send_DAT[0] == data[0] &&
-		ir_Send_DAT[1] == data[1] &&
-		ir_Send_DAT[2] == data[2] &&
-		ir_Send_DAT[3] == data[3])
+	if((ir_Send_DAT[0] == data[0]) &&
+		(ir_Send_DAT[1] == data[1]) &&
+		(ir_Send_DAT[2] == data[2]) &&
+		(ir_Send_DAT[3] == data[3]))
 		return 1;   //发送的和接收的数据相同，返回1
 	else
 	{
