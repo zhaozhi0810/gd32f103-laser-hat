@@ -27,4 +27,9 @@ void IR_Recv_Init(void);
 //系统开机才检测，不开机就不用检测了！！！
 // 红外发送也是在这的。
 void ir_irq9_detect_task(void);
+
+
+
+//接收定时器开启或者关闭 1为开启，0为关闭
+void IR_Recv_Timer_Control(uint8_t enable);
 #endif

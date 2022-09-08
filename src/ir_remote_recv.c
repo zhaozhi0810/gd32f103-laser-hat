@@ -250,8 +250,7 @@ static void TIM3_IR_RECIVER_Init(uint16_t arr,uint16_t psc)
 	nvic_irq_enable(TIMER3_IRQn, 1U, 1U);
 	timer_interrupt_enable(TIMER3, TIMER_INT_UP);
 
-	//启动定时器2
-	timer_enable(TIMER3);
+	
 }
 
 
@@ -261,6 +260,21 @@ void IR_Recv_Init(void)
 	ir_detect_pin_init();   //引脚初始化
 	ir_nec_init();    //nec数据结构初始化
 	TIM3_IR_RECIVER_Init(10000-1,(SystemCoreClock/1000000)-1);   //10ms超时   1MHz == 1us
+}
+
+
+
+
+//接收定时器开启或者关闭 1为开启，0为关闭
+void IR_Recv_Timer_Control(uint8_t enable)
+{
+	if(enable)
+	{
+		//启动定时器2
+		timer_enable(TIMER3);
+	}
+	else
+		timer_disable(TIMER3);
 }
 
 
@@ -311,6 +325,7 @@ void TIMER3_IRQHandler(void)
 {
 	if(timer_interrupt_flag_get(TIMER3,TIMER_INT_FLAG_UP)!=RESET)
 	{
+	//	printf("time3 .. timeout\r\n");
 		ir_nec_reset_transmission();    //定时器超时复位接收
 	}
 	timer_interrupt_flag_clear(TIMER3,TIMER_INT_FLAG_UP);	
@@ -325,8 +340,8 @@ void ir_irq9_handle(void)
 {
 	unsigned int counter;
 	// Restart Timer
-	counter = timer_counter_read(TIMER4);//TIM_GetCounter(TIM2);
-	timer_counter_value_config(TIMER4, 0);//TIM_SetCounter(TIM2, 0);
+	counter = timer_counter_read(TIMER3);//TIM_GetCounter(TIM2);
+	timer_counter_value_config(TIMER3, 0);//TIM_SetCounter(TIM2, 0);
 	ir_nec_state_machine(counter);
 }
 
@@ -363,10 +378,9 @@ static uint8_t check_ir_recv_data(void)
 {
 	uint8_t data[4];
 	
-	
 	if(ir_recv_prev_data == 0)
 		return 0;
-		
+
 	data[3] =  (ir_recv_prev_data & 0xFF000000) >> 24;
 	data[2] = (ir_recv_prev_data & 0x00FF0000) >> 16;
 	data[1] =  (ir_recv_prev_data & 0x0000FF00) >> 8;
@@ -378,11 +392,14 @@ static uint8_t check_ir_recv_data(void)
 		(ir_Send_DAT[1] == data[1]) &&
 		(ir_Send_DAT[2] == data[2]) &&
 		(ir_Send_DAT[3] == data[3]))
+	{
 		return 1;   //发送的和接收的数据相同，返回1
+	}
 	else
 	{
 		printf("ERROR:recv data[0] = %#x,data[1] = %#x,data[2] = %#x,data[3] = %#x\r\n",data[0],data[1],data[2],data[3]);
 	}
+	
 	return 0;
 }
 
@@ -412,7 +429,9 @@ void ir_irq9_detect_task(void)
 	{
 		if(check_ir_recv_data())  //收到红外信号了
 		{
-				//关闭激光照射
+			
+			printf("@@@ir_recv_data\r\n");  //调试时暂时开启 2022-09-08
+			//关闭激光照射
 			if(n == 0)
 			{
 			//	pwm_all_change(0);  //
@@ -433,6 +452,8 @@ void ir_irq9_detect_task(void)
 		}
 		else  //没有收到红外信号
 		{
+			printf("no no no no ir_data\r\n");   //调试时暂时关闭 2022-09-08
+			
 			 if(n)  //清零计数值
 				 n = 0;
 					 

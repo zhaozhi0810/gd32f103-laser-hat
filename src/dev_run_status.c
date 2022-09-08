@@ -67,6 +67,10 @@ void system_power_on(void)
 	
 	// 4. 外设3.3v电源开启
 	output_BT3V_enable();
+	
+	
+	//5. 红外定时器开启
+	IR_Recv_Timer_Control(1);
 }
 
 
@@ -83,6 +87,9 @@ void system_power_off(void)
 	
 	//4. 外设3.3v电源关闭
 	output_BT3V_disable();
+	
+	//5. 红外定时器开启
+	IR_Recv_Timer_Control(0);
 		
 }
 

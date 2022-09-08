@@ -256,7 +256,7 @@ uint16_t ADCgetBatVol(void)
     uint16_t result;
     //float temperature;
     result = ADC_Read(ADC_CHANNEL_10)* 66.0 / 4096;//(ADC_CHANNEL_16,5);  //读取通道16,5次取平均
-    MY_PRINTF("ADCgetBatVol = %d\r\n",result);
+    //MY_PRINTF("ADCgetBatVol = %d\r\n",result);
 	//temperature = (1.43 - adcx*3.3/4096) * 1000 / 4.3 + 10;     //25 --> 10
 //    result = temperature;                  //扩大100倍.
     return result;
@@ -275,7 +275,7 @@ void bat_vol_task(void)
 	if(is_power_charge())//get_system_run_status() == DEV_CHARGE)  //充电时不检测电压
 	{
 		printf("power_charge\r\n");
-		system_power_off();
+	//	system_power_off();     //调试时暂时关闭 2022-09-08
 	//	return;
 	}
 	
@@ -284,17 +284,17 @@ void bat_vol_task(void)
 //	MY_PRINTF("%s %d vol = %d\r\n",__FUNCTION__,__LINE__,vol);
 	if(vol > 36)   //电压放大了10倍  3.6伏
 	{
-		MY_PRINTF("%s %d vol>36\r\n",__FUNCTION__,__LINE__);
+	//	MY_PRINTF("%s %d vol>36\r\n",__FUNCTION__,__LINE__);
 		//nothing to do
 	}
 	else if(vol > 30)  //3.0-3.6 需要报警
 	{
-		MY_PRINTF("%s %d 3.0< vol <=3.6\r\n",__FUNCTION__,__LINE__);
+	//	MY_PRINTF("%s %d 3.0< vol <=3.6\r\n",__FUNCTION__,__LINE__);
 		set_system_run_status(DEV_VOL_LE36);
 	}
 	else //3.0v以下了
 	{
-		MY_PRINTF("%s %d vol <=3.0\r\n",__FUNCTION__,__LINE__);
+	//	MY_PRINTF("%s %d vol <=3.0\r\n",__FUNCTION__,__LINE__);
 		system_power_off();
 	//	set_system_run_status(DEV_VOL_LE30);
 	}

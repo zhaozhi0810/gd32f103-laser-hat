@@ -125,7 +125,7 @@ void laser_enable(unsigned char area)
 static void laser_disable(void)
 {	
 	//关闭5v外设电源供电
-	output_5v_disable();
+//	output_5v_disable();  //调试时关闭09-08
 	
 //	gpio_bit_reset(GPIOA, GPIO_PIN_12);  //PWM_M
 	gpio_bit_reset(GPIOB, GPIO_PIN_3 | GPIO_PIN_4 |GPIO_PIN_5);
@@ -214,8 +214,9 @@ void laser_run_pwm_task(void)
 		laser_enable(0);   //确保激光全部关闭
 		return;
 	}
-	
-	
+	//调试时暂时关闭 2022-09-08
+	laser_enable(0x7f);   //根据状态控制激光区域的显示  //调试时暂时关闭 2022-09-08
+	return 0;   //调试时暂时关闭 2022-09-08
 	if(count < PWM_HZ)
 	{
 		g_pwm_status = laser_area_control;   //默认设置全部点亮，由laser_control控制哪些区域要点亮

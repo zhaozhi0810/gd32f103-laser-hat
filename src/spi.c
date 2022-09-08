@@ -20,7 +20,7 @@ static uint8_t spi_inited = 0 ; //bit0,bit1,bit2有效，为1表示初始化了，为0表示未
 
 void usr_spi_init(spi_index_t index,uint8_t isremap)
 {
-	static uint8_t ready = 0;	   //非0表示已经初始化完成
+//	static uint8_t ready = 0;	   //非0表示已经初始化完成
 	spi_parameter_struct spi_struct;
 	
 	if(spi_inited & (1<<index))   //已经初始化了，就不用再来初始化了。
