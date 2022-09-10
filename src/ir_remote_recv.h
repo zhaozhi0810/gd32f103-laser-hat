@@ -32,4 +32,12 @@ void ir_irq9_detect_task(void);
 
 //接收定时器开启或者关闭 1为开启，0为关闭
 void IR_Recv_Timer_Control(uint8_t enable);
+
+
+//打印laser照射时间
+void print_laser_light_times(void);
+
+
+//关机后要清零照射时间
+void clear_laser_light_times(void);
 #endif

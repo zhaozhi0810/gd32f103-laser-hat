@@ -30,6 +30,11 @@ frame_buf_t g_com_debug_buf={{0},FRAME_LENGHT};    //数据处理缓存
 #endif
 
 
+uint8_t debug_ir_recv_mode = 0;    //调试ir接收模式，由串口命令控制,1为调试模式
+uint8_t charging_enable_start_laser = 0;  //充电模式下允许开机，1为允许
+
+
+
 
 //串口设置激光区域变化
 static void laser_area_control(uint8_t area,uint8_t add)
@@ -52,7 +57,7 @@ static void laser_pwm_control(uint8_t pwm)
 	uint8_t degree;
 	if(pwm <= '9' && pwm >= '0')
 	{
-		degree = ((pwm - '0')+ 1 );
+		degree = ((pwm - '0')+ 1 )*10;  //占空比是0-100了  2022-09-10
 		pwm_all_change(degree);
 	}
 	printf("laser_pwm_control  degree = %d \r\n",degree);	
@@ -90,9 +95,13 @@ static void debug_printf_help(void)
 	printf("1. print laser areas pwm value\r\n");
 	printf("2. print hat's temperature value\r\n");
 	printf("3. print usb charge status\r\n");
-	printf("4. nothing\r\n");
+	printf("4. print laser lights times\r\n");
 	printf("5. print Watch Dog Status(off,not enable this version)\r\n");
-	printf("6. nothing\r\n");
+	printf("6. com command start/stop laser\r\n");
+	printf("7. Enable/Disable start laser when charging \r\n");
+	printf("8. print Battery voltage\r\n");
+	printf("9. enter/exit debug_irrecv_mode\r\n");
+	
 	
 	printf("m1. music or speaker control: next one\r\n");
 	printf("m2. music or speaker control: last one\r\n");
@@ -155,7 +164,7 @@ static void Com_Debug_Message_Handle1(uint8_t buf)
 				printf("laser area = 0x%x \r\n",get_laser_area_val());
 				//打印电流值
 				for(i=0;i<7;i++)  //连续打印7个值
-					printf("laser pwm[%d] = %d \r\n",i,g_pwm[i]);
+					printf("laser pwm[%d] = %d \r\n",i,g_pwm[i]*5);
 				break;
 			case '2':
 				//打印温度值
@@ -167,18 +176,52 @@ static void Com_Debug_Message_Handle1(uint8_t buf)
 	//			printf("lcd light pwm = %d\r\n",g_lcd_pwm);   //lcd的亮度pwm值
 				break;
 			case '4':
-	//			t = Get_Di_4Ttl_Status();   //4路开关量输入DI PB12-PB15
-	//			printf("4Di Di1 %s,Di2 %s,Di3 %s,Di4 %s \r\n",t&1?"on":"off",t&2?"on":"off",t&4?"on":"off",t&8?"on":"off");
-	//			t = Get_Optica_Switch_Status();  //4路光开关状态
-	//			printf("4 op switch D2_STATE2 %s ,D2_STATE1 %s,D1_STATE1 %s,D1_STATE2 %s \r\n",
-	//								t&1?"on":"off",t&2?"on":"off",t&4?"on":"off",t&8?"on":"off");
+				print_laser_light_times();
+
 				break;
 			case '5':
 				printf("Watch Dog Status = %s\r\n","off");   //暂时没有开启
 				break;
 			case '6':
+				if(get_system_run_status() <= DEV_POWEROFF)
+				{					
+					system_power_on();
+				}
+				else
+				{
+					system_power_off();
+				}
 	//			printf("Cpu Run Status = %s\r\n",g_Cpu_Run_Status_str[g_cpu_run_status-1]);
 				break;
+			case '7':	
+				if(charging_enable_start_laser)
+				{
+					charging_enable_start_laser = 0;
+					printf("Disable start laser when charging \r\n");
+				}
+				else
+				{
+					charging_enable_start_laser = 1;
+					printf("Enable start laser when charging \r\n");
+				}
+				break;
+			case '8':
+				print_Battery_voltage();
+				break;
+			case '9':
+				if(debug_ir_recv_mode)
+				{
+					debug_ir_recv_mode = 0;
+					printf("exit debug_irrecv_mode\r\n");
+				}
+				else
+				{
+					debug_ir_recv_mode = 1;  //进入调试模式
+					printf("enter debug_irrecv_mode\r\n");
+				}
+				
+				break;
+			
 			case 'a':
 			case 'A':   //设置激光区域增加
 				cmd = 1;	

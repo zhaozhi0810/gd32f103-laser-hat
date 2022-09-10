@@ -90,6 +90,11 @@ static void BoardInit(void)
 	//11. 红外检测开关发送端初始化
 	IR_Recv_Init();  //接收初始化
 	ir_pwm_init();   //发送初始化
+	
+	
+	TIM1_Laser_Pwm_Init(1000-1,(SystemCoreClock/1000000)-1);  //1ms 计时
+	
+	
 //	ir_detect_init();   //接收端初始化
 	
 	//12. 音乐播放器
@@ -115,7 +120,7 @@ int main(void)
 {
 	uint8_t i;
 	const task_t task[TASK_MAX]={btns_scan    //任务1，上电按钮扫描								
-							,[1] = laser_run_pwm_task       		//任务2，激光的pwm设置，10ms一次
+						//	,[1] = laser_run_pwm_task       		//任务2，激光的pwm设置，10ms一次
 						//	,[2] = Task_Check_CPU_Run_Status    //任务3，运行状态检测，关机重启控制，这个优先级可以低一点
 							,[3] = get_sht30_tmp_task       //任务4，温湿度读取任务，1000ms调用一次
 							,[4] = Task_Led_Show_Work  //任务5，系统状态灯控制，50ms一次	

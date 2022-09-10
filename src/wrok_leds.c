@@ -54,8 +54,8 @@ void OrangeLed_Show_Work_Off(void)
 
 
 //这个值与任务的间隔有关！！！！！
-#define FLASH_FRQ  5   //50ms进入一次，则500ms改变一次亮灭，250ms一个状态
-
+//#define FLASH_FRQ  5   //50ms进入一次，则500ms改变一次亮灭，250ms一个状态
+#define FLASH_FRQ  10   //100ms进入一次，则1000ms改变一次亮灭，500ms一个状态
 //工作灯闪烁
 /*
 	10 ms进入一次

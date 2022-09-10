@@ -44,5 +44,12 @@ void laser_add_a_area(uint8_t area);
 
 //减少一个区域的激光 area取值0-6
 void laser_sub_a_area(uint8_t area);
+
+
+//定时器开启或者关闭 1为开启，0为关闭   2022-09-10增加
+void Laser_Pwm_Timer_Control(uint8_t enable);
+
+//只是用于laserpwm计时，就使用tim1了，避开TIMER2
+void TIM1_Laser_Pwm_Init(uint16_t arr,uint16_t psc);
 #endif
 

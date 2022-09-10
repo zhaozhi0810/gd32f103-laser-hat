@@ -9,6 +9,10 @@
 	PC0
 */
 
+
+static uint8_t g_Battery_voltage = 0;    //电池电压，放大了10倍，则保留一位小数
+
+
 #if 0
 
 /*********************************************************************
@@ -255,7 +259,7 @@ uint16_t ADCgetBatVol(void)
 //    uint32_t adcx;
     uint16_t result;
     //float temperature;
-    result = ADC_Read(ADC_CHANNEL_10)* 66.0 / 4096;//(ADC_CHANNEL_16,5);  //读取通道16,5次取平均
+    result = (ADC_Read(ADC_CHANNEL_10)* 66.0 / 4096)+0.6;//(ADC_CHANNEL_16,5);  //读取通道16,5次取平均
     //MY_PRINTF("ADCgetBatVol = %d\r\n",result);
 	//temperature = (1.43 - adcx*3.3/4096) * 1000 / 4.3 + 10;     //25 --> 10
 //    result = temperature;                  //扩大100倍.
@@ -263,6 +267,13 @@ uint16_t ADCgetBatVol(void)
 
 	
 //	return getAdcAverage(ADC_CHANNEL_0,3)* 66 /1024;   //因为2分压了，所以乘3.3*2,扩大10倍，就不再使用小数
+}
+
+
+//打印电池电压
+void print_Battery_voltage(void)
+{
+	printf("Battery_voltage = %.1f\r\n",g_Battery_voltage/10.0);
 }
 
 
@@ -274,20 +285,24 @@ void bat_vol_task(void)
 	
 	if(is_power_charge())//get_system_run_status() == DEV_CHARGE)  //充电时不检测电压
 	{
-		printf("power_charge\r\n");
-	//	system_power_off();     //调试时暂时关闭 2022-09-08
-	//	return;
+		if(!charging_enable_start_laser) //充电模式不允许开机
+		{
+			printf("power_charging, system poweroff!!!!!!\r\n");
+			system_power_off();     //调试时暂时关闭 2022-09-08
+			return;
+		}
 	}
 	
 	
-	vol = ADCgetBatVol();   //获得电压值
+	g_Battery_voltage = ADCgetBatVol();   //获得电压值
 //	MY_PRINTF("%s %d vol = %d\r\n",__FUNCTION__,__LINE__,vol);
-	if(vol > 36)   //电压放大了10倍  3.6伏
+	if(g_Battery_voltage > 36)   //电压放大了10倍  3.6伏
 	{
 	//	MY_PRINTF("%s %d vol>36\r\n",__FUNCTION__,__LINE__);
 		//nothing to do
+		set_system_run_status(DEV_RUN_NORMAL);
 	}
-	else if(vol > 30)  //3.0-3.6 需要报警
+	else if(g_Battery_voltage > 30)  //3.0-3.6 需要报警
 	{
 	//	MY_PRINTF("%s %d 3.0< vol <=3.6\r\n",__FUNCTION__,__LINE__);
 		set_system_run_status(DEV_VOL_LE36);

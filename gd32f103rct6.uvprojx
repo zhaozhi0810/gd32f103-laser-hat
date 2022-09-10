@@ -464,11 +464,6 @@
               <FilePath>.\src\uart_debug_handle.c</FilePath>
             </File>
             <File>
-              <FileName>pwm.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\pwm.c</FilePath>
-            </File>
-            <File>
               <FileName>uart_conect_cpu_handler.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\uart_conect_cpu_handler.c</FilePath>
@@ -537,6 +532,11 @@
               <FileName>ir_remote_recv.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\ir_remote_recv.c</FilePath>
+            </File>
+            <File>
+              <FileName>pwm1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\pwm1.c</FilePath>
             </File>
           </Files>
         </Group>

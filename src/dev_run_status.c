@@ -50,6 +50,12 @@ void system_power_on(void)
 	uint16_t vol;
 	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 	
+	if(is_power_charge() && !charging_enable_start_laser) //充电不允许开机
+	{
+		printf("power_charging, system disable to start!!!!!!\r\n");
+		return;
+	}
+	
 	vol = ADCgetBatVol();   //获得电压值
 	MY_PRINTF("%s %d vol = %d\r\n",__FUNCTION__,__LINE__,vol);
 	if(vol <= 30)  //电压太低了，不启动
@@ -71,6 +77,9 @@ void system_power_on(void)
 	
 	//5. 红外定时器开启
 	IR_Recv_Timer_Control(1);
+	
+	//6.激光pwm开启
+	Laser_Pwm_Timer_Control(1);
 }
 
 
@@ -90,6 +99,12 @@ void system_power_off(void)
 	
 	//5. 红外定时器开启
 	IR_Recv_Timer_Control(0);
+	
+	//6.激光pwm关闭
+	Laser_Pwm_Timer_Control(0);
+	
+	//7.关机后清零照射时间
+	clear_laser_light_times();
 		
 }
 

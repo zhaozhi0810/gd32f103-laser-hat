@@ -91,12 +91,18 @@ void btns_scan(void) // 10ms 调用一次
 
 	status = get_system_run_status();
 	
-//	if(is_power_charge())   //调试时暂时关闭 2022-09-08
-//	{
-//		if(pressCnt)
-//			pressCnt = 0;   //调试时暂时关闭 2022-09-08
-//		return;	
-//	}                  //调试时暂时关闭 2022-09-08
+	if(!charging_enable_start_laser) //充电时不允许开机
+	{		
+		if(is_power_charge())   //调试时暂时关闭 2022-09-08
+		{			
+			if(pressCnt)
+			{	
+				pressCnt = 0;   //调试时暂时关闭 2022-09-08
+				printf("power_charging, system disable to start!!!!!!\r\n");
+			}
+			return;	
+		}                  //调试时暂时关闭 2022-09-08
+	}
 	if(gd_all_keys_state_get()==  SET)  //被按下
 	{
 		if(pressCnt<=300) //之前是松开的

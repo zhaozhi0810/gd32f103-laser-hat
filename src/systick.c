@@ -136,7 +136,7 @@ void Systick_Int_Update(void)
 	//外接电源时需要亮灯
 	if(g_localtime % TASK5_TICKS_INTERVAL == 15)
 	{
-		g_task_id |= 0x10;   //任务5，系统状态灯控制，50ms一次
+		g_task_id |= 0x10;   //任务5，系统状态灯控制，500ms一次
 	}
 	
 	if(get_system_run_status() > DEV_POWEROFF)  //开机之后才需要做的事情
@@ -151,9 +151,9 @@ void Systick_Int_Update(void)
 			g_task_id |= 8;   //任务4，温湿度读取任务，1000ms调用一次
 		}
 		
-		if(g_localtime % TASK6_TICKS_INTERVAL == 77)
+		if(g_localtime % TASK6_TICKS_INTERVAL == 177)
 		{
-			g_task_id |= 0x20;   //任务6，红外开关检测，100ms进入一次,包含红外发射
+			g_task_id |= 0x20;   //任务6，红外开关检测，500ms进入一次,包含红外发射
 		}
 		if(g_localtime % TASK7_TICKS_INTERVAL == 133)
 		{

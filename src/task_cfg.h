@@ -18,7 +18,7 @@
 //#define TASK3_TICKS_INTERVAL 10   //任务3，空
 #define TASK4_TICKS_INTERVAL 1000   //任务4，温湿度读取任务，1000ms调用一次
 #define TASK5_TICKS_INTERVAL 50   //任务5，系统状态灯控制，50ms一次
-#define TASK6_TICKS_INTERVAL 100   //任务6，红外开关检测，100ms进入一次,包含红外发射
+#define TASK6_TICKS_INTERVAL 500   //任务6，红外开关检测，500ms进入一次,包含红外发射
 #define TASK7_TICKS_INTERVAL 500   //任务7，电池电压监控,充电中不检测电压 500ms一次
 //#define TASK15_TICKS_INTERVAL 533   //任务5，喂狗，暂定533ms
 //#define TASK16_TICKS_INTERVAL 1000   //任务16，1s扫描，工作led闪烁任务.2021-12-01 任务删除
