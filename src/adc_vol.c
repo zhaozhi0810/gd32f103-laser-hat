@@ -10,7 +10,7 @@
 */
 
 
-static uint8_t g_Battery_voltage = 0;    //电池电压，放大了10倍，则保留一位小数
+static uint8_t g_Battery_voltage = 40;    //电池电压，放大了10倍，则保留一位小数
 
 
 #if 0
@@ -259,7 +259,7 @@ uint16_t ADCgetBatVol(void)
 //    uint32_t adcx;
     uint16_t result;
     //float temperature;
-    result = (ADC_Read(ADC_CHANNEL_10)* 66.0 / 4096)+0.6;//(ADC_CHANNEL_16,5);  //读取通道16,5次取平均
+    result = (ADC_Read(ADC_CHANNEL_10)* 66.0 / 4096);//(ADC_CHANNEL_16,5);  //读取通道16,5次取平均
     //MY_PRINTF("ADCgetBatVol = %d\r\n",result);
 	//temperature = (1.43 - adcx*3.3/4096) * 1000 / 4.3 + 10;     //25 --> 10
 //    result = temperature;                  //扩大100倍.
@@ -293,8 +293,12 @@ void bat_vol_task(void)
 		}
 	}
 	
-	
-	g_Battery_voltage = ADCgetBatVol();   //获得电压值
+	vol  = ADCgetBatVol();   //获得电压值
+	if(is_power_charge())
+		g_Battery_voltage = vol;
+	else if(vol < g_Battery_voltage)  //没有充电的情况下，去获取的最小值
+		g_Battery_voltage = vol;
+		
 //	MY_PRINTF("%s %d vol = %d\r\n",__FUNCTION__,__LINE__,vol);
 	if(g_Battery_voltage > 36)   //电压放大了10倍  3.6伏
 	{
