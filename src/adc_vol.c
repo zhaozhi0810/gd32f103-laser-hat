@@ -300,7 +300,7 @@ void bat_vol_task(void)
 		g_Battery_voltage = vol;
 		
 //	MY_PRINTF("%s %d vol = %d\r\n",__FUNCTION__,__LINE__,vol);
-	if(g_Battery_voltage > 36)   //电压放大了10倍  3.6伏
+	if(g_Battery_voltage > 34)   //电压放大了10倍  3.6伏
 	{
 	//	MY_PRINTF("%s %d vol>36\r\n",__FUNCTION__,__LINE__);
 		//nothing to do

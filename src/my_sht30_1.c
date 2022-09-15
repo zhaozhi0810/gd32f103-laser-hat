@@ -128,19 +128,19 @@ void get_sht30_tmp_task(void)
 	//new temperature and humidity values 
 		if(g_temperature < 30.0)
 		{
-			pwm_all_change(100);
+			pwm_all_change(40);
 		}
 		else if(g_temperature < 35.0)
 		{
-			pwm_all_change(70);		
+			pwm_all_change(35);		
 		}
 		else if(g_temperature < 40.0)
 		{
-			pwm_all_change(50);		
+			pwm_all_change(30);		
 		}
 		else if(g_temperature < 45.0)
 		{
-			pwm_all_change(30);		
+			pwm_all_change(25);		
 		}
 		else if(g_temperature < 48.0)  //50╤хак
 		{
