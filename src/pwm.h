@@ -37,7 +37,8 @@ void laser_run_pwm_task(void);
 
 //获得激光区域设置
 uint8_t get_laser_area_val(void);
-
+//设置激光区域  2022-09-16
+void set_laser_area_val(uint8_t val);
 
 //增加一个区域的激光 area取值0-6
 void laser_add_a_area(uint8_t area);

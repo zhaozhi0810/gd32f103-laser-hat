@@ -431,7 +431,7 @@ void ir_irq9_detect_task(void)
 {
 	static uint8_t cn = 0;   //未佩戴检测去波动
 	static uint8_t n = 0;   //未佩戴时间计时
-	
+	static uint8_t saved_laser_area_val = 0;   //保存区域值 
 //	static uint16_t k = 0;
 	
 	
@@ -454,6 +454,12 @@ void ir_irq9_detect_task(void)
 			if(debug_ir_recv_mode)	//调试模式加打印		
 				printf("@@@ir_recv_data\r\n");  //调试时暂时开启 2022-09-08
 			//关闭激光照射
+			if(get_laser_area_val())
+			{
+				saved_laser_area_val = get_laser_area_val();   //保存之前的值
+				set_laser_area_val(0);   //关闭所有的区域
+			}
+			
 			//if(n == 0)
 			//{
 			//	pwm_all_change(0);  //
@@ -487,6 +493,9 @@ void ir_irq9_detect_task(void)
 				{
 					if(n)  //清零计数值
 						n = 0;
+					
+					if(saved_laser_area_val)  //重新点亮激光
+						set_laser_area_val(saved_laser_area_val);
 				}
 			}
 			

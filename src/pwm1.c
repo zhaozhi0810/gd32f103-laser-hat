@@ -31,7 +31,7 @@ static uint8_t g_pwm_status = 0;  //0-6位，1表示开启激光，0表示关闭激光
 
 #define PWM_HZ 20   //设置pwm的频率，定时器每20ms进入一次，即为50HZ
 
-static uint8_t laser_area_control = 0x7f;  //表示7个区域全开，可以设置对应的区域 
+static uint8_t gs_laser_area_control = 0x7f;  //表示7个区域全开，可以设置对应的区域 
 
 
 //用于普通的io端口，使用定时器去模拟pwm
@@ -88,26 +88,31 @@ void TIMER1_IRQHandler(void)
 	
 	if(timer_interrupt_flag_get(TIMER1,TIMER_INT_FLAG_UP)!=RESET)
 	{
-		count++;  //1ms 已过去
-		
-		if(count < PWM_HZ)
+		if(gs_laser_area_control)
 		{
-			g_pwm_status = laser_area_control;   //默认设置全部点亮，由laser_control控制哪些区域要点亮
+			count++;  //1ms 已过去
 			
-			for(i=0;i<7;i++)
+			if(count < PWM_HZ)
 			{
-				if(g_pwm[i] <= count) //计数值比设定值要大，关闭
+				g_pwm_status = gs_laser_area_control;   //默认设置全部点亮，由laser_control控制哪些区域要点亮
+				
+				for(i=0;i<7;i++)
 				{
-					g_pwm_status &= ~(1<<i);   //清零表示关闭
-				}			
+					if(g_pwm[i] <= count) //计数值比设定值要大，关闭
+					{
+						g_pwm_status &= ~(1<<i);   //清零表示关闭
+					}			
+				}
+				laser_enable(g_pwm_status);   //根据状态控制激光区域的显示
 			}
-			laser_enable(g_pwm_status);   //根据状态控制激光区域的显示
+			else 
+			{
+				count = 0;   //一个周期结束，重新开始下一个周期
+			//	return;   //刚刚清零就不用去加了
+			}
 		}
-		else
-		{
-			count = 0;   //一个周期结束，重新开始下一个周期
-		//	return;   //刚刚清零就不用去加了
-		}
+		else if(count)
+			count = 0;
 	}
 	timer_interrupt_flag_clear(TIMER1,TIMER_INT_FLAG_UP);	
 }
@@ -244,24 +249,29 @@ void pwm_all_change(uint8_t degree)
 void laser_add_a_area(uint8_t area)
 {
 	if(area < 7)
-		laser_area_control |= 1<<area;
+		gs_laser_area_control |= 1<<area;
 }
 
 //减少一个区域的激光 area取值0-6
 void laser_sub_a_area(uint8_t area)
 {
 	if(area < 7)
-		laser_area_control &= ~(1<<area);
+		gs_laser_area_control &= ~(1<<area);
 }
 
 
 
 uint8_t get_laser_area_val(void)
 {
-	return laser_area_control;
+	return gs_laser_area_control;
 }
 
 
+//设置激光区域  2022-09-16
+void set_laser_area_val(uint8_t val)
+{
+	gs_laser_area_control = val;
+}
 
 
 //100HZ的频率，10ms进入一次
