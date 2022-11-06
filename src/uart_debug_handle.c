@@ -33,7 +33,7 @@ frame_buf_t g_com_debug_buf={{0},FRAME_LENGHT};    //数据处理缓存
 uint8_t debug_ir_recv_mode = 0;    //调试ir接收模式，由串口命令控制,1为调试模式
 uint8_t charging_enable_start_laser = 0;  //充电模式下允许开机，1为允许
 
-
+extern uint32_t start_count;
 
 
 //串口设置激光区域变化
@@ -177,10 +177,9 @@ static void Com_Debug_Message_Handle1(uint8_t buf)
 				break;
 			case '4':
 				print_laser_light_times();
-
 				break;
 			case '5':
-				printf("Watch Dog Status = %s\r\n","off");   //暂时没有开启
+				printf("Watch Dog Status = %s--%d\r\n","off",start_count);   //暂时没有开启
 				break;
 			case '6':
 				if(get_system_run_status() <= DEV_POWEROFF)

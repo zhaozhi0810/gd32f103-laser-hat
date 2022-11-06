@@ -3,12 +3,12 @@
 #define IIC_APP_H
 
 #include <gd32f10x.h>
-
-typedef enum{
-	IIC1_INDEX = 0    //PB6(scl),PB7
-	,IIC2_INDEX = 1     //PB10(scl),PB11
-	,IIC3_INDEX = 2    //PB8(scl),PB9
-}iic_index_t;
+#include "iic_sim_include.h"
+//typedef enum{
+//	IIC1_INDEX = 0    //PB6(scl),PB7
+//	,IIC2_INDEX = 1     //PB10(scl),PB11
+//	,IIC3_INDEX = 2    //PB8(scl),PB9
+//}iic_index_t;
 
 
 // I2C acknowledge 
@@ -19,7 +19,7 @@ typedef enum{
 
 
 
-void IicApp_Init(iic_index_t index);
+void IicApp_Init(dz_sim_iic_iostruct_t* iic_io);
 
 /*
 	IICapp写多个数据，最多写入256个字节！！！
@@ -31,7 +31,7 @@ void IicApp_Init(iic_index_t index);
 		0  ：     成功
 		非0：     失败
 */
-uint8_t IicApp_Write_Bytes(iic_index_t index,uint8_t dev_addr,uint8_t word_addr,const uint8_t *dat,uint8_t len);
+uint8_t IicApp_Write_Bytes(dz_sim_iic_iostruct_t* iic_io,uint8_t dev_addr,uint8_t word_addr,const uint8_t *dat,uint8_t len);
 
 
 
@@ -43,9 +43,9 @@ uint8_t IicApp_Write_Bytes(iic_index_t index,uint8_t dev_addr,uint8_t word_addr,
 	返回值： 0 表示成功
 			非0 表示失败
 */
-uint8_t IicApp_Read_Bytes(iic_index_t index,uint8_t dev_addr,uint8_t word_addr,uint8_t *dat,uint8_t len);
+uint8_t IicApp_Read_Bytes(dz_sim_iic_iostruct_t* iic_io,uint8_t dev_addr,uint8_t word_addr,uint8_t *dat,uint8_t len);
 
 //当前地址读！！
-uint8_t IicApp_Read_Byte_Cur(iic_index_t index,uint8_t dev_addr,uint8_t *dat,uint8_t len);
+uint8_t IicApp_Read_Byte_Cur(dz_sim_iic_iostruct_t* iic_io,uint8_t dev_addr,uint8_t *dat,uint8_t len);
 
 #endif

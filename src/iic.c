@@ -191,7 +191,7 @@ uint8_t IIC_Wait_Ack(iic_index_t index)
 		if(ucErrTime>250)
 		{
 			IIC_Stop(index);
-			printf("ERROR: IIC_Wait_Ack\r\n");
+		//	printf("ERROR: IIC_Wait_Ack\r\n");
 			return 1;
 		}
 		Delay1us(20);   //延时一下
@@ -263,7 +263,7 @@ uint8_t I2c_WriteByte(iic_index_t index,uint8_t txd)
 	if(IIC_Wait_Ack(index))  //如果没有应答，直接退出
 	{
 		//printf("send word addr error!\n");
-		DBG_PRINTF("ERROR: send word_addr IIC_Wait_Ack(index)!= 0 index = %d txd = %#x\r\n",index,txd);
+	//	DBG_PRINTF("ERROR: send word_addr IIC_Wait_Ack(index)!= 0 index = %d txd = %#x\r\n",index,txd);
 		IIC_Stop(index); //iic_stop(I2Cx);     //发送停止信号，总线就空闲了
 		return 3;
 	}

@@ -39,11 +39,15 @@ uint16_t g_task_id;   //Ã¿Ò»¸öÎ»¶ÔÓ¦Ò»¸öÈÎÎñ£¬Îª1±íÊ¾ĞèÒªÆô¶¯ÈÎÎñ£¬ÔÚÈÎÎñÖĞÇåÁã¸
 
 static void BoardInit(void)
 {
+	
+
 //	etError   error;       // error code 
 //	uint32_t      serialNumber;// serial number 
 //	float        temperature; // temperature [¡ãC] 
 //	float        humidity;    // relative humidity [%RH] 
 
+	
+	
 	//0. µçÔ´¹ÜÀí³õÊ¼»¯
 	PowerManager_init();
 	

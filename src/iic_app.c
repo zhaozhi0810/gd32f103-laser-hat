@@ -15,6 +15,9 @@
 //考虑到有多个接口可能会调用初始化，设置全局防止多次初始化
 static uint8_t iic_inited = 0;    //第0位和第1位 设置为1表示已经初始化了，0表示未初始化
 
+
+
+
 void IicApp_Init(iic_index_t index)
 {
 //	iic_init(I2Cx);	
@@ -43,7 +46,7 @@ uint8_t IicApp_Read_Byte_Cur(iic_index_t index,uint8_t dev_addr,uint8_t *dat,uin
 	//if(iic_put_devaddr(I2Cx,dev_addr | 1) != 0)   //最低位是1，表示读操作
 	{
 		//printf("i2c  read_byte_cur send dev addr error!\r\n");
-		DBG_PRINTF("ERROR:IIC_Wait_Ack(index)!= 0 index = %d\r\n",index);
+	//	DBG_PRINTF("ERROR:IIC_Wait_Ack(index)!= 0 index = %d\r\n",index);
 		return 2;
 	}
 	
@@ -90,7 +93,7 @@ uint8_t IicApp_Write_Bytes(iic_index_t index,uint8_t dev_addr,uint8_t word_addr,
 	if(IIC_Wait_Ack(index)!= 0) 
 	{
 		//printf("i2c  read_byte_cur send dev addr error!\r\n");
-		DBG_PRINTF("ERROR: send dev_addr IIC_Wait_Ack(index)!= 0 dev_addr = 0x%x index = %d\r\n",dev_addr,index);
+	//	DBG_PRINTF("ERROR: send dev_addr IIC_Wait_Ack(index)!= 0 dev_addr = 0x%x index = %d\r\n",dev_addr,index);
 		IIC_Stop(index);
 		return 2;
 	}
@@ -100,7 +103,7 @@ uint8_t IicApp_Write_Bytes(iic_index_t index,uint8_t dev_addr,uint8_t word_addr,
 	if(IIC_Wait_Ack(index))  //如果没有应答，直接退出
 	{
 		//printf("send word addr error!\r\n");
-		DBG_PRINTF("ERROR: send word_addr IIC_Wait_Ack(index)!= 0 index = %d\r\n",index);
+	//	DBG_PRINTF("ERROR: send word_addr IIC_Wait_Ack(index)!= 0 index = %d\r\n",index);
 		IIC_Stop(index); //iic_stop(I2Cx);     //发送停止信号，总线就空闲了
 		return 3;
 	}
@@ -119,7 +122,7 @@ uint8_t IicApp_Write_Bytes(iic_index_t index,uint8_t dev_addr,uint8_t word_addr,
 		//if(iic_put_byte_data(I2Cx,dat[i]))  //如果没有应答，直接退出
 		{
 			//printf("send data error!\r\n");
-			DBG_PRINTF("ERROR: send data IIC_Wait_Ack(index)!= 0 i=%d index = %d\r\n",i,index);
+	//		DBG_PRINTF("ERROR: send data IIC_Wait_Ack(index)!= 0 i=%d index = %d\r\n",i,index);
 			IIC_Stop(index); //iic_stop(I2Cx);     //发送停止信号，总线就空闲了
 			return 4;
 		}
@@ -155,7 +158,8 @@ uint8_t IicApp_Read_Bytes(iic_index_t index,uint8_t dev_addr,uint8_t word_addr,u
 		return IicApp_Read_Byte_Cur(index,dev_addr,dat,len);
 	}
 	else
-		DBG_PRINTF("ERROR: IicApp_Write_Bytes ret = %d index = %d\r\n",ret,index);
+		;
+	//	DBG_PRINTF("ERROR: IicApp_Write_Bytes ret = %d index = %d\r\n",ret,index);
 	return ret;   //在这返回
 }
 

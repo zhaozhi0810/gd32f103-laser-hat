@@ -376,7 +376,8 @@ void ir_irq9_handle(void)
 
 
 
-
+//返回1表示受到红外数据，返回0表示没有收到红外数据
+//返回2表示收到了错误的数据。
 static uint8_t check_ir_recv_data(void)
 {
 	uint8_t data[4];
@@ -400,7 +401,9 @@ static uint8_t check_ir_recv_data(void)
 	}
 	else
 	{
+		printf("ERROR:org ir_Send_DAT[0] = %#x,ir_Send_DAT[1] = %#x,ir_Send_DAT[2] = %#x,ir_Send_DAT[3] = %#x\r\n",ir_Send_DAT[0],ir_Send_DAT[1],ir_Send_DAT[2],ir_Send_DAT[3]);
 		printf("ERROR:recv data[0] = %#x,data[1] = %#x,data[2] = %#x,data[3] = %#x\r\n",data[0],data[1],data[2],data[3]);
+		return 2;
 	}
 	
 	return 0;
@@ -429,11 +432,11 @@ void clear_laser_light_times(void)
 // 红外发送也是在这的。
 void ir_irq9_detect_task(void)
 {
-	static uint8_t cn = 0;   //未佩戴检测去波动
+	static uint8_t cn = 0,cn1= 0;   //未佩戴检测去波动
 	static uint8_t n = 0;   //未佩戴时间计时
 	static uint8_t saved_laser_area_val = 0;   //保存区域值 
 //	static uint16_t k = 0;
-	
+	uint8_t ret = 0;
 	
 	if (get_system_run_status() <= DEV_POWEROFF)  //关机模式下不发送和检测
 	{
@@ -443,21 +446,31 @@ void ir_irq9_detect_task(void)
 		return;
 	}
 	
-//	if(cn++%2 == 0)
-//	{
-		IR_NEC_Send_Code(ir_Send_DAT, 4);
-//	}
-//	else
+	if(cn1++%2 == 0)
 	{
-		if(check_ir_recv_data())  //收到红外信号了
+		IR_NEC_Send_Code(ir_Send_DAT, 4);
+	}
+	else
+	{
+		ret = check_ir_recv_data();
+		if(1 == ret)  //收到红外信号了
 		{	
+			//激光pwm关闭
+		//	Laser_Pwm_Timer_Control(0);
+			
 			if(debug_ir_recv_mode)	//调试模式加打印		
 				printf("@@@ir_recv_data\r\n");  //调试时暂时开启 2022-09-08
-			//关闭激光照射
-			if(get_laser_area_val())
+			
+			if(get_laser_area_val())//关闭激光照射
 			{
 				saved_laser_area_val = get_laser_area_val();   //保存之前的值
 				set_laser_area_val(0);   //关闭所有的区域
+			}
+			
+			if(n>3)
+			{				
+				if(cn)
+					cn = 0;   //延迟检测清零
 			}
 			
 			//if(n == 0)
@@ -466,10 +479,7 @@ void ir_irq9_detect_task(void)
 			//	DBG_PRINTF("ERROR : ir_irq9_detect_task detect device off ,and will poweroff laser\r\n");
 			//}
 			n++;
-			
-			if(cn)
-				cn = 0;   //延迟检测清零
-			
+						
 			if(debug_ir_recv_mode)	//调试模式加打印	
 			{
 				if(n%2)
@@ -483,8 +493,10 @@ void ir_irq9_detect_task(void)
 				system_power_off();   //关机
 			}
 		}
-		else  //没有收到红外信号
+		else if(0 == ret)  //没有收到红外信号
 		{
+			if(saved_laser_area_val)  //重新点亮激光
+				set_laser_area_val(saved_laser_area_val);
 			
 			if(cn < 10)
 			{
@@ -492,37 +504,43 @@ void ir_irq9_detect_task(void)
 				if(cn == 10)
 				{
 					if(n)  //清零计数值
-						n = 0;
-					
-					if(saved_laser_area_val)  //重新点亮激光
-						set_laser_area_val(saved_laser_area_val);
+						n = 0;					
 				}
 			}
-			
-			if(debug_ir_recv_mode)  //调试模式加打印
-				printf("no no no no ir_data\r\n");   //调试时暂时关闭 2022-09-08
-							 
-			 //开启激光
-			 if(g_laser_light_timers == 0)   //第一次进来的时候，开启全部激光
-			 {
-				 pwm_all_change(100);
-				 DBG_PRINTF("ir_irq9_detect_task detect someone ,and poweron laser\r\n");
-			 }
-			 //判断时间是否到了最长时间限制
-			  g_laser_light_timers ++;   //佩戴时间计时开始
-			 
-//			 if(g_laser_light_timers == 10)  //连续10次监测不到数据就清零
-//			 {
-//				
-//			 }
-			 
-			 
-			 if(g_laser_light_timers > (60*28*2))   //49200 小于65535
-			 {
-				 DBG_PRINTF("ir_irq9_detect_task task is run 28 mins,and system poweroff\r\n");
-				 system_power_off();   //时间到关机
-				 g_laser_light_timers = 0;				 
-			 }
+			else //连续监测到了10次
+			{
+				//6.激光pwm开启
+			//	Laser_Pwm_Timer_Control(1);
+				
+				if(debug_ir_recv_mode)  //调试模式加打印
+					printf("no no no no ir_data\r\n");   //调试时暂时关闭 2022-09-08
+								 
+				 //开启激光
+				 if(g_laser_light_timers == 3)   //第一次进来的时候，开启全部激光
+				 {
+					 pwm_all_change(40);
+					 DBG_PRINTF("ir_irq9_detect_task detect someone ,and poweron laser\r\n");
+				 }
+				 //判断时间是否到了最长时间限制
+				  g_laser_light_timers ++;   //佩戴时间计时开始
+				 
+	//			 if(g_laser_light_timers == 10)  //连续10次监测不到数据就清零
+	//			 {
+	//				
+	//			 }
+				 
+				 
+				 if(g_laser_light_timers > (60*28*2))   //49200 小于65535
+				 {
+					 DBG_PRINTF("ir_irq9_detect_task task is run 28 mins,and system poweroff\r\n");
+					 system_power_off();   //时间到关机
+					 g_laser_light_timers = 0;				 
+				 }
+			}
+		}
+		else // if(2 == ret)  //错误的码
+		{
+			//不操作
 		}
 	}
 }

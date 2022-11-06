@@ -1,6 +1,6 @@
 
 #include "includes.h"
-
+#include "flash_record.h"
 /*
 	主要是设备的运行状态，及状态监控
 
@@ -24,7 +24,7 @@
 
 static system_run_status_t g_run_status = DEV_POWEROFF;  //系统运行的状态
 
-
+uint32_t start_count  = 0;
 
 
 //修改系统运行的状态
@@ -48,7 +48,28 @@ system_run_status_t get_system_run_status(void)
 void system_power_on(void)
 {
 	uint16_t vol;
+	uint8_t ret = 0;
+	flash_rcd_t config;
 	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
+	
+	ret = read_flash_config(&config);
+	if(ret == 255)
+	{
+		printf("ret == 255\r\n");
+		config.start_count = 1;
+		start_count = 1;
+		write_flash_config(&config);
+	}
+	else{
+		printf("ret == %d\r\n",ret);
+		config.start_count++;
+		start_count = config.start_count;
+		write_flash_config(&config);
+	}
+	
+	if(start_count > 3000)  //大于3000次不让启动
+		return;
+	
 	
 	if(is_power_charge() && !charging_enable_start_laser) //充电不允许开机
 	{
@@ -69,11 +90,13 @@ void system_power_on(void)
 	
 	// 3. 红外检测开关开始工作
 //	ir_detect_init();   //红外检测初始化
-	
+	laser_enable(0);   //激光全部关闭，
 	
 	// 4. 外设3.3v电源开启
 	output_BT3V_enable();
 	
+	//5. 5v电源开启，红外需要5v电源
+	output_5v_enable();
 	
 	//5. 红外定时器开启
 	IR_Recv_Timer_Control(1);
@@ -91,13 +114,15 @@ void system_power_off(void)
 	//没有连接usb电源的话，后面就不会处理了。
 	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
 	set_system_run_status(DEV_POWEROFF);  //系统状态修改为关机
+	
+	pwm_all_change(0);
 	laser_enable(0);   //激光全部关闭，5v的电源被关闭  包括output_5v_disable(void)
 //	ir_detect_off();   //红外检测关闭
 	
 	//4. 外设3.3v电源关闭
 	output_BT3V_disable();
 	
-	//5. 红外定时器开启
+	//5. 红外定时器关闭
 	IR_Recv_Timer_Control(0);
 	
 	//6.激光pwm关闭

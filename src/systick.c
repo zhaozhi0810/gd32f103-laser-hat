@@ -155,7 +155,7 @@ void Systick_Int_Update(void)
 		{
 			g_task_id |= 0x20;   //任务6，红外开关检测，500ms进入一次,包含红外发射
 		}
-		if(g_localtime % TASK7_TICKS_INTERVAL == 133)
+		if(g_localtime % TASK7_TICKS_INTERVAL == 333)
 		{
 			g_task_id |= 0x40;   //任务7，电池电压监控,充电中不检测电压 500ms一次
 		}

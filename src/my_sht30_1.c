@@ -10,11 +10,13 @@ float        g_temperature; // temperature [°C]
  
 static uint8_t g_temp_control = 1;   //温度控制灯的亮度，1表示用温度控制，0表示不用温度控制
 
+static dz_sim_iic_iostruct_t  iic_sht30_io = {RCU_GPIOB,RCU_GPIOB,GPIOB,GPIOB,GPIO_PIN_6,GPIO_PIN_7};
+ 
  
 void SHT30_Init(void)
 {
 //	uint8_t ret;
-	IicApp_Init(IIC1_INDEX);	
+	IicApp_Init(&iic_sht30_io);	
 	
 //	Delay1ms(10);
 	
@@ -48,25 +50,25 @@ void temp_control_disable(void)
 ********************************************************************/ 
 void SHT30_read_result(uint8_t addr)
 {
-	uint8_t ret;
+//	uint8_t ret;
 	uint16_t tem;//,hum;
-	uint16_t buff[6];
+	uint8_t buff[6];
 //	float Temperature=0;
 //	float Humidity=0;
 	
 
 //	Delay1ms(50);//DelayMs(50);
 	
-	
-	IIC_Start(IIC1_INDEX);  //IIC_Start();
+	IicApp_Read_Byte_Cur(&iic_sht30_io,addr<<1,buff,2);
+//	IIC_Start(IIC1_INDEX);  //IIC_Start();
 	//IIC_SendByte(addr<<1 | read);//写7位I2C设备地址加0作为写取位,1为读取位
 	//if(IIC_wait_ACK()==0)
-	ret = I2c_WriteByte(IIC1_INDEX,(addr<<1)|1);
-	if(ret == 0)
-	{
-		buff[0]=IIC_Read_Byte(IIC1_INDEX,1);
+//	ret = I2c_WriteByte(IIC1_INDEX,(addr<<1)|1);
+//	if(ret == 0)
+//	{
+//		buff[0]=IIC_Read_Byte(IIC1_INDEX,1);
 		//IIC_ACK();
-		buff[1]=IIC_Read_Byte(IIC1_INDEX,0);//buff[1]=IIC_RcvByte();
+//		buff[1]=IIC_Read_Byte(IIC1_INDEX,0);//buff[1]=IIC_RcvByte();
 		//IIC_ACK();
 //		buff[2]=IIC_Read_Byte(IIC1_INDEX,1);//buff[2]=IIC_RcvByte();
 //		//IIC_ACK();
@@ -77,7 +79,7 @@ void SHT30_read_result(uint8_t addr)
 //		buff[5]=IIC_Read_Byte(IIC1_INDEX,0);//buff[5]=IIC_RcvByte();
 		//IIC_NACK();
 		//IIC_Stop();
-		IIC_Stop(IIC1_INDEX);
+//		IIC_Stop(IIC1_INDEX);
 	
 	
 		tem = ((buff[0]<<8) | buff[1]);//温度拼接
@@ -94,13 +96,15 @@ void SHT30_read_result(uint8_t addr)
 //			sprintf(humiture_buff1,"%6.2f*C %6.2f%%",Temperature,Humidity);//111.01*C 100.01%（保留2位小数）
 //		}
 //		printf("温湿度：%6.2f*C\r\n",g_temperature);
-	}
+//	}
 	
-	IIC_Start(IIC1_INDEX);  //IIC_Start();
-	ret = I2c_WriteByte(IIC1_INDEX,0x44<<1);  //地址
-	ret = I2c_WriteByte(IIC1_INDEX,0x2C);  //地址	
-	ret = I2c_WriteByte(IIC1_INDEX,0x06);  //地址	
-	IIC_Stop(IIC1_INDEX);//IIC_Stop();	
+	uint8_t dat = 0x06;
+	IicApp_Write_Bytes(&iic_sht30_io,addr<<1,0x2C,&dat,1);
+//	IIC_Start(IIC1_INDEX);  //IIC_Start();
+//	ret = I2c_WriteByte(IIC1_INDEX,addr<<1);  //地址
+//	ret = I2c_WriteByte(IIC1_INDEX,0x2C);  //地址	
+//	ret = I2c_WriteByte(IIC1_INDEX,0x06);  //地址	
+//	IIC_Stop(IIC1_INDEX);//IIC_Stop();	
 	
 	//printf("ERROR: 温湿度\n");
 //	hum=0;

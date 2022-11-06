@@ -20,6 +20,8 @@
 #define RTE_DEVICE_STDPERIPHERALS_ADC
 /*  GigaDevice::Device:GD32F10x_StdPeripherals:EXTI:2.0.1 */
 #define RTE_DEVICE_STDPERIPHERALS_EXTI
+/*  GigaDevice::Device:GD32F10x_StdPeripherals:FMC:2.0.1 */
+#define RTE_DEVICE_STDPERIPHERALS_FMC
 /*  GigaDevice::Device:GD32F10x_StdPeripherals:GPIO:2.0.1 */
 #define RTE_DEVICE_STDPERIPHERALS_GPIO
 /*  GigaDevice::Device:GD32F10x_StdPeripherals:MISC:2.0.1 */

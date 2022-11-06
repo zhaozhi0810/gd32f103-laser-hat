@@ -55,6 +55,8 @@ void laser_control_init(void)
 	gpio_bit_reset(GPIOD, GPIO_PIN_2);
 	
 	MY_PRINTF("%s %d\r\n",__FUNCTION__,__LINE__);
+	
+	pwm_all_change(0);
 }
 
 
@@ -113,6 +115,8 @@ void TIMER1_IRQHandler(void)
 		}
 		else if(count)
 			count = 0;
+		else
+			laser_enable(0);
 	}
 	timer_interrupt_flag_clear(TIMER1,TIMER_INT_FLAG_UP);	
 }
@@ -121,6 +125,13 @@ void TIMER1_IRQHandler(void)
 //定时器开启或者关闭 1为开启，0为关闭
 void Laser_Pwm_Timer_Control(uint8_t enable)
 {
+	static uint8_t is_enable = 0;
+	
+	if(is_enable == enable)
+		return ;
+	
+	is_enable = enable;
+		
 	if(enable)
 	{
 		//启动定时器1
@@ -153,7 +164,7 @@ void laser_enable(unsigned char area)
 	}
 	
 	//开启5v外设电源供电
-	output_5v_enable();
+//	output_5v_enable();
 	
 	if(area & 1)
 		gpio_bit_set(GPIOB, GPIO_PIN_4);
@@ -216,8 +227,8 @@ void pwm_out(uint8_t ch,uint8_t degree)
 	if(ch > 6)
 		return;
 	
-	if(degree>100)
-		degree = 100;
+	if(degree>40)   //控制最大功率为40
+		degree = 40;
 	
 	
 	g_pwm[ch] = degree/5;
@@ -233,8 +244,8 @@ void pwm_out(uint8_t ch,uint8_t degree)
 void pwm_all_change(uint8_t degree)
 {
 	uint8_t i;
-	if(degree>100)
-		degree = 100;
+	if(degree>40)   //控制最大功率为40
+		degree = 40;
 
 	for(i=0;i<7;i++)
 	{
