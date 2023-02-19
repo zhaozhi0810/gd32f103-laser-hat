@@ -126,6 +126,7 @@ void btns_scan(void) // 10ms 调用一次
 //				if(pressCnt > 10000)
 //					pressCnt = 10000; //防止长按越界
 			}
+			
 		}		
 	}
 	else{  //松开
@@ -133,6 +134,12 @@ void btns_scan(void) // 10ms 调用一次
 		{
 			MY_PRINTF("%s %d btn release\r\n",__FUNCTION__,__LINE__);		
 			pressCnt = 0;
+		}
+		
+		//状态是关机，并且没有充电
+		if(status <= DEV_POWEROFF)  //2023-02-03 增加
+		{
+			system_power_off();
 		}
 	//	release = 0;   //记录状态：  已经松开
 	}	
